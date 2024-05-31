@@ -1,0 +1,5 @@
+Stream to laptop with ip (192.168.67.162) and port 5000
+
+gst-launch-1.0 nvarguscamerasrc sensor_id=0 ! nvvidconv ! omxh265enc insert-vui=1 ! h265parse ! rtph265pay config-interval=1 ! udpsink host=192.168.67.162 port=5000
+
+
