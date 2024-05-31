@@ -1,0 +1,159 @@
+# camera-streaming-daemon configuration file is composed of sections,
+# each section has some keys and values. They
+# are case insensitive, so `Key=Value` is the same as `key=value`.
+#
+# [This-is-a-section]
+# ThisIsAKey=ThisIsAValue
+# <ThisIsAnVariable>=ThisIsAValue
+# Following specifications of expected sessions and key/values.
+#
+# Section [Mavlink]:
+#
+# Keys:
+#   Port
+#       MAVLink destination UDP port.
+#       Default: 14550
+#
+#   System_ID
+#       System ID of the Camera-Streaming-Daemon to be used in MAVLink
+#       communications.
+#       Default: 42
+#
+#   Rtsp_Server_Addr
+#       IP address or hostname of the interface where the rtsp server is
+#       running. This is the address that will be used by the client to
+#       make the rtsp request.
+#       Default: 0.0.0.0
+#
+#   Broadcast_Addr
+#       Broadcast address to send MAVLink heartbeat messages.
+#       Default: 255.255.255.255
+#
+# Section [Gstreamer]:
+#
+# Keys:
+#   Muxer
+#       Muxer used to create the gstreamer pipeline
+#       Default: rtph264pay
+#
+#   Converter
+#       Converter used to create the gstreamer pipeline
+#       Default: autovideoconvert
+#
+#   Encoder
+#       Muxer used to create the gstreamer pipeline
+#       Default: x264enc
+#
+# Section [V4L2]
+#
+# Keys:
+#   Blacklist
+#      Coma separated list of /dev/video devices that won't be exported by
+#      camera-streaming-daemon. If the video streams from cameras /dev/video123
+#      and /dev/video456 can't be exported, set:
+#      blacklist = video123,video456
+#      Default: <empty>
+#
+# Section [uri]:
+#
+# Keys:
+#  <camera-device-id>
+#      URI for the Camera Definition File of the camera device <camera-device-id>
+# video0 = http://ipofdronefromgroundstation/video0_camera_definition.xml
+#       
+#
+# Section [gazebo]:
+#
+# Keys:
+#   camtopic
+#      Gazebo topic where camera images are published.
+#
+#
+# Section [imgcap]:
+#
+# Keys:
+#   width
+#       Width of the image to be captured in pixels.
+#       Default: Full width of camera frame for sensor type (i.e 1080P - 1920, 720P - 1280, etc)
+#       Possible Values: Dependent on camera sensor
+#
+#   height
+#       Height of the image to be captured in pixels.
+#       Default: Full height of camera frame for sensor type (i.e 1080P - 1080, 720P - 720, etc)
+#       Possible Values: Dependent on camera sensor
+#
+#   format
+#       Image format
+#       Default: 2 (JPEG)
+#       Possible Values:
+#            1 - Not Supported  (IMAGE_FILE_RAW)
+#            2 - JPEG Format    (IMAGE_FILE_JPEG)
+#            3 - Not Supported  (IMAGE_FILE_EXIF)
+#            4 - Not Supported  (IMAGE_FILE_TIFF)
+#            5 - Not Supported  (IMAGE_FILE_GIF)
+#            6 - Not Supported  (IMAGE_FILE_PNG)
+#            7 - Not Supported  (IMAGE_FILE_BMP)
+#
+#   location
+#       Location of the image file to write
+#       Default: /tmp/
+#       Possible Values: The path should be accessible and writeable
+#
+#
+# Section [vidcap]:
+#
+# Keys:
+#   width
+#       Width of the video to be captured in pixels.
+#       Default: Full width of camera frame for sensor type (i.e 1080P - 1920, 720P - 1280, etc)
+#       Possible Values: Dependent on camera sensor
+#
+#   height
+#       Height of the video to be captured in pixels.
+#       Default: Full height of camera frame for sensor type (i.e 1080P - 1080, 720P - 720, etc)
+#       Possible Values: Dependent on camera sensor
+#
+#   framerate
+#       Camera framerate for video capture
+#       Default: Default framerate of camera sensor (eg - 25)
+#       Possible Values: Dependent on camera sensor
+#
+#   bitrate
+#       Bitrate of the encoded video data in kbps
+#       Default: 512
+#       Possible Values: [1,2048000]
+#
+#   encoder
+#       Video encoding format
+#       Default: 3 (AVC)
+#       Possible Values:
+#           1 - Not Supported (VIDEO_CODING_H263)
+#           2 - Not Supported (VIDEO_CODING_MPEG4)
+#           3 - H.264         (VIDEO_CODING_AVC)
+#           4 - Not Supported (VIDEO_CODING_MJPEG)
+#           5 - Not Supported (VIDEO_CODING_WMV)
+#
+#   format
+#       Video file format
+#       Default: 1 (MP4)
+#       Possible Values:
+#            1 - Moving Pictures Expert Group 4  (VIDEO_FILE_MP4)
+#            2 - Not Supported                   (VIDEO_FILE_AVI)
+#            3 - Not Supported                   (VIDEO_FILE_WMV)
+#            4 - Not Supported                   (VIDEO_FILE_FLV)
+#            5 - Not Supported                   (VIDEO_FILE_MOV)
+#
+#   location
+#       Location of the video file to write
+#       Default: /tmp/
+#       Possible Values: The path that is accessible and writeable
+#
+# Section [rtsp]:
+#
+# Keys:
+#   pipeline
+#       A gstreamer pipeline to transmit the video to the ground station.
+#       Default: none
+# [rtsp]
+# pipeline=v4l2src device=/dev/video0 ! videoconvert ! video/x-raw, format=I420 ! x264enc speed-preset=ultrafast tune=zerolatency ! rtph264pay name=pay0
+#

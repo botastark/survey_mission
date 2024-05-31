@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<mavlinkcamera>
+	<definition version="1">
+		<model>NVIDIA Jetson kit camera (Sony IMX219-77)</model>
+		<vendor>vi-output, imx219 10-0010</vendor>
+	</definition>
+	<parameters>
+		<parameter name="CAM_MODE" type="uint32" default="1" control="0">
+			<description>Camera Mode</description>
+			<options>
+				<option name="Photo" value="0" />
+				<exclusions>
+				<!--<exclude>video-size</exclude>-->
+					<exclude>CAM_VIDRES</exclude>
+					<exclude>CAM_VIDFMT</exclude>
+				</exclusions>
+				<option name="Video" value="1" />
+				<exclusions>
+					<exclude>CAM_PHOTOFMT</exclude>
+					<exclude>CAM_PHOTOQUAL</exclude>
+					<exclude>CAM_COLORMODE</exclude>
+				</exclusions>
+			</options>
+		</parameter>
+
+
+	<parameter name="CAM_VIDRES" type="uint32" default="0">
+		<description>Video Resolution</description>
+		<options>
+			<option name="3264 x 2464 21fps (UHD)" value="0">
+				<exclusions>
+					<exclude>CAM_VIDFMT</exclude>
+				</exclusions>
+			</option>
+			<option name="3264 x 1848 28fps (UHD)" value="1">
+				<exclusions>
+					<exclude>CAM_VIDFMT</exclude>
+				</exclusions>
+			</option>
+			<option name="1920 x 1080 30fps (UHD)" value="2">
+				<exclusions>
+					<exclude>CAM_VIDFMT</exclude>
+				</exclusions>
+			</option>
+			<option name="1640 x 1232 30fps (UHD)" value="3"></option>
+			<option name="1280 x 720 60fps (UHD)" value="4"></option>
+		</options>
+	</parameter>
+	<parameter name="Group Hold" type="int32" default="0" min="0" max="1" step="1">
+		<description>Group Hold</description>
+	</parameter>
+	<parameter name="Sensor Mode" type="int32" default="0" min="0" max="5" step="1">
+		<description>Sensor Mode</description>
+	</parameter>
+	<parameter name="Gain" type="int32" default="16" min="16" max="170" step="1">
+		<description>Gain</description>
+	</parameter>
+	<parameter name="Exposure" type="int32" default="2495" min="13" max="683709" step="1">
+		<description>Exposure</description>
+	</parameter>
+	<parameter name="CAM_VIDFPS" type="int32" default="30000000" min="2000000" max="30000000" step="1">
+		<description>Frame Rate</description>
+	</parameter>
+	<parameter name="Sensor configuration" type="int32" default="0" min="0" max="4294967295" step="1">
+		<description>Sensor configuration</description>
+	</parameter>
+	<parameter name="Sensor mode I2C packet" type="int32" default="0" min="0" max="4294967295" step="1">
+		<description>Sensor mode I2C packet</description>
+	</parameter>
+	<parameter name="Sensor control I2C packet" type="int32" default="0" min="0" max="4294967295" step="1">
+		<description>Sensor control I2C packet</description>
+	</parameter>
+	<parameter name="Bypass Mode" type="int32" default="0" min="0" max="1" step="1">
+		<description>Bypass Mode</description>
+	</parameter>
+	<parameter name="Override Enable" type="int32" default="0" min="0" max="1" step="1">
+		<description>Override Enable</description>
+	</parameter>
+	<parameter name="Height Align" type="int32" default="1" min="1" max="16" step="1">
+		<description>Height Align</description>
+	</parameter>
+	<parameter name="Size Align" type="int32" default="0" min="0" max="2" step="1">
+		<description>Size Align</description>
+	</parameter>
+	<parameter name="Write ISP format" type="int32" default="1" min="1" max="1" step="1">
+		<description>Write ISP format</description>
+	</parameter>
+	<parameter name="Sensor Signal Properties" type="int32" default="0" min="0" max="4294967295" step="1">
+		<description>Sensor Signal Properties</description>
+	</parameter>
+	<parameter name="Sensor Image Properties" type="int32" default="0" min="0" max="4294967295" step="1">
+		<description>Sensor Image Properties</description>
+	</parameter>
+	<parameter name="Sensor Control Properties" type="int32" default="0" min="0" max="4294967295" step="1">
+		<description>Sensor Control Properties</description>
+	</parameter>
+	<parameter name="Sensor DV Timings" type="int32" default="0" min="0" max="4294967295" step="1">
+		<description>Sensor DV Timings</description>
+	</parameter>
+	<parameter name="Low Latency Mode" type="int32" default="0" min="0" max="1" step="1">
+		<description>Low Latency Mode</description>
+	</parameter>
+	<parameter name="Preferred Stride" type="int32" default="0" min="0" max="65535" step="1">
+		<description>Preferred Stride</description>
+	</parameter>
+	<parameter name="Sensor Modes" type="int32" default="30" min="0" max="30" step="1">
+		<description>Sensor Modes</description>
+	</parameter>
+
+
+	</parameters>
+</mavlinkcamera>
