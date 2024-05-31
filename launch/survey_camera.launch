@@ -1,0 +1,14 @@
+<launch>
+	<!-- vim: set ft=xml noet : -->
+	<!-- example launch script for PX4 based FCU's -->
+
+	<arg name="fcu_url" default="/dev/ttyTHS0:921600" />
+	<arg name="gcs_url" default="udp://@192.168.67.200:14550" />
+
+	<include file="$(find mavros)/launch/px4.launch">
+		<arg name="fcu_url" value="$(arg fcu_url)" />
+		<arg name="gcs_url" value="$(arg gcs_url)" />
+	</include>
+
+        <node name="image_capture_node" type="image_capture_node" pkg="survey_mission" output = "screen"/>
+</launch>
