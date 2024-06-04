@@ -14,3 +14,6 @@ sudo systemctl disable mission.service
 for debug:
 journalctl -u mission.service -xe
 
+
+FOR DCM:
+sudo DCM/dcm_setup.sh
