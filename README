@@ -1,0 +1,16 @@
+To enable on startup service:
+1. sudo cp ~/catkin_ws/src/survey_mission/mission.service /etc/systemd/system/mission.service
+	Modify ExecStart as needed
+2. sudo systemctl daemon-reload
+	To make discoverable mission.service
+3. sudo systemctl enable mission.service 
+
+4. OPTIONS:
+sudo systemctl start mission.service 
+sudo systemctl status mission.service 
+sudo systemctl stop mission.service 
+sudo systemctl disable mission.service 
+
+for debug:
+journalctl -u mission.service -xe
+
