@@ -10,5 +10,5 @@
 		<arg name="gcs_url" value="$(arg gcs_url)" />
 	</include>
 
-        <node name="image_capture_node" type="image_capture_node" pkg="survey_mission" output = "screen"/>
+        <!--<node name="image_capture_node" type="image_capture_node" pkg="survey_mission" output = "screen"/> -->
 </launch>

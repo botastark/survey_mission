@@ -16,4 +16,10 @@ journalctl -u mission.service -xe
 
 
 FOR DCM:
+roscd survey_mission
 sudo DCM/dcm_setup.sh
+sudo DCM/deploy.sh
+sudo systemctl daemon-reload
+sudo systemctl enable dronecode-camera-manager.service 
+sudo systemctl start dronecode-camera-manager.service 
+
