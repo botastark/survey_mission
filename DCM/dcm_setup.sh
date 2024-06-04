@@ -22,7 +22,6 @@ echo "replace for NNIDIA camera conf"
 cp /home/uvify/catkin_ws/src/survey_mission/DCM/nvidia_camera.conf /home/uvify/catkin_ws/src/camera-manager/samples/config/main.conf
 cp /home/uvify/catkin_ws/src/survey_mission/DCM/camera_def-jetsonkitcamera.xml /home/uvify/catkin_ws/src/camera-manager/samples/def/nvidia_camera.xml
 cp /home/uvify/catkin_ws/src/survey_mission/DCM/ImageCaptureGst.cpp /home/uvify/catkin_ws/src/camera-manager/src/ImageCaptureGst.cpp
-
 echo "check enable options"
 ./autogen.sh && ./configure --enable-mavlink --enable-avahi
 echo "Make!"
