@@ -1,0 +1,16 @@
+# to copy it to sudo cp ~/catkin_ws/src/survey_mission/mission.service /etc/systemd/system/mission.service
+
+[Unit]
+Description=ROS Launch Service
+After=network.target
+
+[Service]
+ExecStart=/home/uvify/catkin_ws/src/survey_mission/start_launch.sh
+Restart=always
+User=uvify
+Environment=DISPLAY=:0
+WorkingDirectory=/home/uvify
+
+[Install]
+WantedBy=multi-user.target
+
