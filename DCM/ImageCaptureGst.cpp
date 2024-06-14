@@ -21,6 +21,13 @@
 #include <unistd.h>
 #include <vector>
 #include <iostream>
+
+#include <sys/stat.h>
+
+#include <iomanip>
+#include <chrono>
+#include <ctime>    // for localtime() and strftime()
+
 using namespace std;
 
 #include "CameraParameters.h"
@@ -351,12 +358,40 @@ std::string ImageCaptureGst::getGstPipelineNameV4l2()
 	   << ", format=NV12";
     }
 
+   
+    // Get current time with high precision
+    auto now = std::chrono::system_clock::now();
+    auto ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+    auto fractional_seconds = now - ms;
+
+    // Generate folder path with current date as name
+    std::time_t rawtime = std::chrono::system_clock::to_time_t(now);
+    struct std::tm* timeinfo = std::localtime(&rawtime);
+    char buffer[80];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d", timeinfo);
+    std::string dateFolder = buffer;
+    std::string dateFolderPath = mPath + "/" + dateFolder;
+
+    // Create directory if it does not exist
+    if (access(dateFolderPath.c_str(), F_OK) == -1) {
+        mkdir(dateFolderPath.c_str(), 0777);
+    }
+
+    // Generate filename with precise current time (hours, minutes, seconds, milliseconds)
+    std::stringstream timeFilename;
+    timeFilename << std::put_time(timeinfo, "%H-%M-%S")
+                 << '-' << std::setfill('0') << std::setw(3) << fractional_seconds.count();
+
+  
+
     std::stringstream ss;
     ss << "nvarguscamerasrc sensor_id=0 "
        << "num-buffers=1 ! "
        << filter.str() << " ! nvvidconv ! "
        << "video/x-raw, format=I420 ! jpegenc ! "
-       << "filesink location=" << mPath + "img_" << std::to_string(++imgCount) << "." + ext;
+       /*<< "filesink location=" << mPath + "img_" << std::to_string(++imgCount) << "." + ext;*/
+       << "filesink location=" << dateFolderPath + "/img_" << timeFilename.str() << "." + ext;
+
 
     log_debug("Gstreamer pipeline: %s", ss.str().c_str());
 
