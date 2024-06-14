@@ -15,7 +15,8 @@ def state_callback(state_msg):
 
     # Check if the mode has changed
     if current_mode != previous_mode:
-        rospy.loginfo(f"Mode changed to {current_mode}")
+        rospy.loginfo("Mode changed to {}".format(current_mode))
+
 
         # Perform actions based on the current mode
         if current_mode == "OFFBOARD":
@@ -31,18 +32,18 @@ def state_callback(state_msg):
 def stop_drone_manager():
     # Use subprocess to run the command to stop drone_manager.service
     try:
-        subprocess.run(["sudo", "systemctl", "stop", "dronecode-camera-manager.service"])
+        subprocess.call(["sudo", "systemctl", "stop", "dronecode-camera-manager.service"])
         rospy.loginfo("drone_manager.service stopped successfully.")
     except Exception as e:
-        rospy.logerr(f"Error stopping drone_manager.service: {str(e)}")
+        rospy.logerr("Error stopping drone_manager.service: {}".format(str(e)))
 
 def start_drone_manager():
     # Use subprocess to run the command to start drone_manager.service
     try:
-        subprocess.run(["sudo", "systemctl", "start", "drone_manager.service"])
+        subprocess.call(["sudo", "systemctl", "start", "dronecode-camera-manager.service"])
         rospy.loginfo("drone_manager.service started successfully.")
     except Exception as e:
-        rospy.logerr(f"Error starting drone_manager.service: {str(e)}")
+        rospy.logerr("Error starting drone_manager.service: {}".format(str(e)))
 
 def main():
     rospy.init_node('disable_dcm_node', anonymous=True)
