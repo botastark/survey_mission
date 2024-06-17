@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
         ROS_ERROR("Failed to open camera.");
         return -1;
     }
-    ros::Subscriber sub = nh.subscribe("save_image", 20, saveImageCallback);
+    ros::Subscriber sub = nh.subscribe("/save_image", 20, saveImageCallback);
     cv::Mat frame;
 
     while (ros::ok()) {

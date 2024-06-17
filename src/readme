@@ -1,0 +1,16 @@
+Testers:
+stream.txt - to check streaming to GSC.
+image_capture.py  - to open and save img using window
+
+
+Image capture for survey mission from offboard and from QGC mission:
+capture_trigger.cpp - used for testing image capture
+image_capture.cpp - saves images when triggered (by capture_trigger.cpp)
+disable_DCM_offboard.py - offboard mode on/off -> open/release camera 
+
+
+Survey mission offboard:
+mission_complete.cpp - checks if waypoints are reached
+mission.cpp - navigating drone         
+util.cpp - helper functions
+
