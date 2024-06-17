@@ -11,4 +11,9 @@
 	</include>
 
         <!--<node name="image_capture_node" type="image_capture_node" pkg="survey_mission" output = "screen"/> -->
+
+        <node name="disable_dcm_node" type="disable_DCM_offboard.py" pkg="survey_mission" output="screen">
+        </node>
+
+
 </launch>

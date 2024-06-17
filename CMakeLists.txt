@@ -141,15 +141,14 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/survey_mission_node.cpp)
+
 add_executable(image_capture_node src/image_capture.cpp )
 
-
-add_executable(mavlink_listener_node src/mavlink_command_listener.cpp )
-target_link_libraries(mavlink_listener_node ${catkin_LIBRARIES})
 
 
 add_executable(trigger_node src/capture_trigger.cpp )
 target_link_libraries(trigger_node ${catkin_LIBRARIES})
+
 
 
 ## Rename C++ executable without prefix
