@@ -12,9 +12,13 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   mavros_msgs
+  sensor_msgs
+  geometry_msgs
+  cv_bridge
 )
 find_package(OpenCV REQUIRED)
-
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};/usr/share/cmake/geographiclib")
+find_package(GeographicLib REQUIRED)
 
 
 ## System dependencies are found with CMake's conventions
@@ -121,11 +125,13 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
 
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
+
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -143,13 +149,12 @@ include_directories(
 # add_executable(${PROJECT_NAME}_node src/survey_mission_node.cpp)
 
 add_executable(image_capture_node src/image_capture.cpp )
-
-
-
 add_executable(trigger_node src/capture_trigger.cpp )
-target_link_libraries(trigger_node ${catkin_LIBRARIES})
 
 
+add_executable(mission_node src/mission.cpp)
+add_executable(missionchecker_node src/mission_complete.cpp)
+add_library(util src/util.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -162,6 +167,22 @@ target_link_libraries(trigger_node ${catkin_LIBRARIES})
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(image_capture_node ${catkin_LIBRARIES} ${OpenCV_LIBS} opencv_videoio )
+target_link_libraries(trigger_node ${catkin_LIBRARIES})
+
+
+
+target_link_libraries(mission_node ${catkin_LIBRARIES} util)
+target_link_libraries(missionchecker_node ${catkin_LIBRARIES} util)
+
+
+target_include_directories(mission_node PRIVATE ${GeographicLib_INCLUDE_DIRS})
+target_compile_definitions(mission_node PRIVATE ${GeographicLib_DEFINITIONS})
+target_link_libraries     (mission_node         ${GeographicLib_LIBRARIES})
+
+target_include_directories(missionchecker_node PRIVATE ${GeographicLib_INCLUDE_DIRS})
+target_compile_definitions(missionchecker_node PRIVATE ${GeographicLib_DEFINITIONS})
+target_link_libraries     (missionchecker_node         ${GeographicLib_LIBRARIES})
+
 
 
 ## Specify libraries to link a library or executable target against
