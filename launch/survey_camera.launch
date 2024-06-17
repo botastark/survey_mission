@@ -10,10 +10,12 @@
 		<arg name="gcs_url" value="$(arg gcs_url)" />
 	</include>
 
-        <!--<node name="image_capture_node" type="image_capture_node" pkg="survey_mission" output = "screen"/> -->
-
         <node name="disable_dcm_node" type="disable_DCM_offboard.py" pkg="survey_mission" output="screen">
         </node>
+        <!--
+	<node name="mission_node" type="mission_node" pkg="survey_mission" output="screen" />
+        <node name="missionchecker_node" type="missionchecker_node" pkg="survey_mission" output ="screen"/> 
+	-->
 
 
 </launch>
