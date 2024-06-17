@@ -20,26 +20,37 @@ void reachedTargetCallback(const std_msgs::Bool::ConstPtr &msg) {
     reached_target = msg->data;
 }
 
-//void armDrone(ros::ServiceClient &arming_client) {
-//    mavros_msgs::CommandBool arm_cmd;
-//    arm_cmd.request.value = true;
-//    if (arming_client.call(arm_cmd) && arm_cmd.response.success) {
-//        ROS_INFO("Drone armed");
-//    } else {
-//        ROS_ERROR("Failed to arm the drone");
-//    }
-//}
+void armDrone(ros::ServiceClient &arming_client) {
+    mavros_msgs::CommandBool arm_cmd;
+    arm_cmd.request.value = true;
+    if (arming_client.call(arm_cmd) && arm_cmd.response.success) {
+        ROS_INFO("Drone armed");
+    } else {
+        ROS_ERROR("Failed to arm the drone");
+    }
+}
 
-//void setMode(ros::ServiceClient &set_mode_client, const std::string &mode) {
-//    mavros_msgs::SetMode offb_set_mode;
-//    offb_set_mode.request.custom_mode = mode;
-//    if (set_mode_client.call(offb_set_mode) &&
-//        offb_set_mode.response.mode_sent) {
-//        ROS_INFO_STREAM("Mode set to: " << mode);
-//    } else {
-//        ROS_ERROR_STREAM("Failed to set mode: " << mode);
-//    }
-//}
+void disarmDrone(ros::ServiceClient &arming_client) {
+    mavros_msgs::CommandBool disarm_cmd;
+    disarm_cmd.request.value = false;  // Set to false to disarm
+
+    if (arming_client.call(disarm_cmd) && disarm_cmd.response.success) {
+        ROS_INFO("Drone disarmed");
+    } else {
+        ROS_ERROR("Failed to disarm the drone");
+    }
+}
+
+void setMode(ros::ServiceClient &set_mode_client, const std::string &mode) {
+    mavros_msgs::SetMode offb_set_mode;
+    offb_set_mode.request.custom_mode = mode;
+    if (set_mode_client.call(offb_set_mode) &&
+        offb_set_mode.response.mode_sent) {
+        ROS_INFO_STREAM("Mode set to: " << mode);
+    } else {
+        ROS_ERROR_STREAM("Failed to set mode: " << mode);
+    }
+}
 
 // Function to create geo msgs for a GPS waypoint
 geographic_msgs::GeoPoseStamped create_pose(double latitude,
@@ -81,8 +92,8 @@ int main(int argc, char **argv) {
 
     ros::ServiceClient arming_client =
         nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
-    //ros::ServiceClient set_mode_client =
-        //nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
+
+    ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
     ros::Rate rate(20.0);
 
     // Wait for FCU connection
@@ -139,16 +150,24 @@ int main(int argc, char **argv) {
     }
     // home_position.pose.position.altitude = temp_home_alt;
 
-    setMode(set_mode_client, "OFFBOARD");
-    ROS_INFO("Drone taking off");
+    // setMode(set_mode_client, "OFFBOARD");
 
     // Wait for offboard
     while (ros::ok() && current_state.mode != "OFFBOARD") {
         ros::spinOnce();
         rate.sleep();
     }
-    armDrone(arming_client);
+    ROS_INFO("Drone is in OFFBOARD mode.");
 
+    // Wait for the drone to be armed (assuming arming is done via RC)
+    while (ros::ok() && !current_state.armed) {
+        ros::spinOnce();
+        rate.sleep();
+    }
+
+    ROS_INFO("Drone is armed.");
+    // armDrone(arming_client);
+    ros::Time start_time;
     // Navigate to each waypoint
     for (const auto &waypoint : waypoints) {
         ROS_INFO_STREAM("Navigating to waypoint: "
@@ -166,7 +185,7 @@ int main(int argc, char **argv) {
         }
         ROS_INFO("reached waypoint");
         // Hover for 1 second to stabilize the drone
-        ros::Time start_time = ros::Time::now();
+        start_time = ros::Time::now();
         while (ros::ok() && (ros::Time::now() - start_time).toSec() < 1.0) {
             global_pos_pub.publish(goal_position);
             ros::spinOnce();
@@ -176,6 +195,13 @@ int main(int argc, char **argv) {
         // Take picture at waypoint
         takePicture(take_picture_pub);
         ROS_INFO("Taking picture");
+
+        start_time = ros::Time::now();
+        while (ros::ok() && (ros::Time::now() - start_time).toSec() < 1.0) {
+            global_pos_pub.publish(goal_position);
+            ros::spinOnce();
+            rate.sleep();
+        }
     }
 
     // Return to home
@@ -189,14 +215,25 @@ int main(int argc, char **argv) {
 
     // Wait for landing
     setMode(set_mode_client, "AUTO.LAND");
+
     ROS_INFO("Drone landing");
+    ros::Time land_start = ros::Time::now();
 
     while (ros::ok() && current_state.mode != "AUTO.LAND") {
         ros::spinOnce();
         rate.sleep();
     }
 
-    ROS_INFO("Mission complete");
+    // Wait for 15 seconds after landing (regardless of landing confirmation)
+    while (ros::ok() && (ros::Time::now() - land_start).toSec() < 15.0) {
+        ros::spinOnce();
+        rate.sleep();
+    }
 
+    ROS_INFO("Drone has landed");
+
+    // Call the disarm function
+    disarmDrone(arming_client);
+    ROS_INFO("Mission complete");
     return 0;
 }
