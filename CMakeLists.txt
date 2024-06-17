@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   mavros_msgs
   sensor_msgs
   geometry_msgs
-  cv_bridge
+  
 )
 find_package(OpenCV REQUIRED)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};/usr/share/cmake/geographiclib")
