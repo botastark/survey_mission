@@ -5,19 +5,18 @@
 #include <ctime>
 #include <sys/stat.h>
 std::string gstreamer_pipeline(int sensor_id = 0,
-                               int capture_width = 1920,
-                               int capture_height = 1080,
-                               int display_width = 960,
-                               int display_height = 540,
-                               int framerate = 30,
+                               int capture_width = 3264,
+                               int capture_height = 1848,
+                               int framerate = 28,
                                int flip_method = 0) {
     return "nvarguscamerasrc sensor-id=" + std::to_string(sensor_id) + " ! "
-           "video/x-raw(memory:NVMM), width=(int)" + std::to_string(capture_width) + ", height=(int)" + std::to_string(capture_height) + ", framerate=(fraction)" + std::to_string(framerate) + "/1 ! "
+           "video/x-raw(memory:NVMM), width=(int)" + std::to_string(capture_width) + ", height=(int)" + std::to_string(capture_height) + ", format=(string)P010_10LE, framerate=(fraction)" + std::to_string(framerate) + "/1 ! "
            "nvvidconv flip-method=" + std::to_string(flip_method) + " ! "
-           "video/x-raw, width=(int)" + std::to_string(display_width) + ", height=(int)" + std::to_string(display_height) + ", format=(string)BGRx ! "
-           "videoconvert ! "
-           "video/x-raw, format=(string)BGR ! appsink";
+           "videoconvert ! video/x-raw, format=(string)BGR ! "
+           "appsink";
 }
+
+
 
 cv::VideoCapture video_capture;
 std::string base_path = "/home/uvify/Desktop/offboard_images/";
@@ -65,12 +64,8 @@ void saveImageCallback(const std_msgs::Bool::ConstPtr& msg) {
 
             // Check if directory exists, create if not
             ensureDirectoryExists(dateFolder);
-            std::string filename = dateFolder + "/" + getCurrentDateTime() + ".jpg";
+            std::string filename = dateFolder + "/" + getCurrentDateTime() + ".png";
             
-            //ros::Time timestamp = ros::Time::now();
-            // std::stringstream ss;
-            //ss << timestamp.sec << "_" << timestamp.nsec;
-            //std::string filename = base_path + original_filename + "_" + ss.str() + ".jpg";
             
             cv::imwrite(filename, frame);
             // ROS_INFO("Image captured: %s", filename.c_str());
@@ -92,12 +87,6 @@ int main(int argc, char** argv) {
     }
     ros::Subscriber sub = nh.subscribe("/save_image", 20, saveImageCallback);
     cv::Mat frame;
-
-    while (ros::ok()) {
-    
-        video_capture >> frame;
-        ros::spinOnce();
-    }
 
     ros::spin();
     video_capture.release();

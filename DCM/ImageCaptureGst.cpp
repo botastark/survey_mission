@@ -19,6 +19,7 @@
 #include <gst/gst.h>
 #include <sstream>
 #include <unistd.h>
+
 #include <vector>
 #include <iostream>
 
@@ -40,6 +41,7 @@ using namespace std;
 #define V4L2_DEVICE_PREFIX "/dev/"
 
 int ImageCaptureGst::imgCount = 0;
+
 
 ImageCaptureGst::ImageCaptureGst(std::shared_ptr<CameraDevice> camDev)
     : mCamDev(camDev)
@@ -305,6 +307,8 @@ std::string ImageCaptureGst::getGstImgEncName(int format)
         return "jpegenc";
         break;
     case CameraParameters::IMAGE_FILE_PNG:
+	return "pngenc";
+	break;
     case CameraParameters::IMAGE_FILE_RAW:
     default:
         return {};
@@ -355,7 +359,7 @@ std::string ImageCaptureGst::getGstPipelineNameV4l2()
     filter << "video/x-raw(memory:NVMM), ";
     if (mWidth > 0 && mHeight > 0) {
         filter << "width=" << std::to_string(mWidth) << ", height=" << std::to_string(mHeight)
-	   << ", format=NV12";
+	   << ", format=(string)P010_10LE , framerate=(fraction)28/1";
     }
 
    
@@ -387,15 +391,13 @@ std::string ImageCaptureGst::getGstPipelineNameV4l2()
     std::stringstream ss;
     ss << "nvarguscamerasrc sensor_id=0 "
        << "num-buffers=1 ! "
-       << filter.str() << " ! nvvidconv ! "
-       << "video/x-raw, format=I420 ! jpegenc ! "
+       << filter.str() << " ! nvvidconv flip-method=0 ! "
+       << "videoconvert ! pngenc ! "
        /*<< "filesink location=" << mPath + "img_" << std::to_string(++imgCount) << "." + ext;*/
-       << "filesink location=" << dateFolderPath + "/img_" << timeFilename.str() << "." + ext;
+       << "filesink location=" << dateFolderPath + "/" << timeFilename.str() << "." + ext;
 
 
     log_debug("Gstreamer pipeline: %s", ss.str().c_str());
-
-
     return ss.str();
 }
 
@@ -415,6 +417,7 @@ int ImageCaptureGst::createV4l2Pipeline()
     }
     log_info(" %s",pipeline_str.c_str());
     pipeline = gst_parse_launch(pipeline_str.c_str(), &error);
+
     if (!pipeline) {
         log_error("Error creating pipeline");
         if (error)
