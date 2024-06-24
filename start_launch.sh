@@ -8,4 +8,5 @@ ROSCORE_PID=$!
 sleep 5
 
 roslaunch survey_mission survey_camera.launch
+
 wait $ROSCORE_PID

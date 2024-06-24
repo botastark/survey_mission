@@ -151,10 +151,11 @@ include_directories(
 add_executable(image_capture_node src/image_capture.cpp )
 add_executable(trigger_node src/capture_trigger.cpp )
 
-
-add_executable(mission_node src/mission.cpp)
-add_executable(missionchecker_node src/mission_complete.cpp)
 add_library(util src/util.cpp)
+add_executable(mission_node src/mission.cpp)
+
+add_executable(missionchecker_node src/mission_complete.cpp)
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -168,7 +169,6 @@ add_library(util src/util.cpp)
 
 target_link_libraries(image_capture_node ${catkin_LIBRARIES} ${OpenCV_LIBS} opencv_videoio )
 target_link_libraries(trigger_node ${catkin_LIBRARIES})
-
 
 
 target_link_libraries(mission_node ${catkin_LIBRARIES} util)

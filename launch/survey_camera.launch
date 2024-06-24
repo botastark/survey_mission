@@ -9,12 +9,14 @@
 		<arg name="fcu_url" value="$(arg fcu_url)" />
 		<arg name="gcs_url" value="$(arg gcs_url)" />
 	</include>
-
-        <node name="disable_dcm_node" type="disable_DCM_offboard.py" pkg="survey_mission" output="log">
-        </node>
-        
 	<node name="mission_node" type="mission_node" pkg="survey_mission" output="log" />
-        <node name="missionchecker_node" type="missionchecker_node" pkg="survey_mission" output ="log"/> 
+	
+        <node name="disable_dcm_node" type="disable_DCM_offboard.py" pkg="survey_mission" output="screen">
+        </node>
+        <node name="missionchecker_node" type="missionchecker_node" pkg="survey_mission" output ="screen">
+	</node> 
+	
+        
 
 
 

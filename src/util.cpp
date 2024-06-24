@@ -70,20 +70,40 @@ std::vector<GPSPosition> readWaypointsFromFile(const std::string& filename, doub
     return waypoints;
 }
 
-#define ROS_LOG_TIME(level, message)                       \
-    do {                                                   \
-        std::ostringstream oss;                            \
-        oss << "[" << ros::Time::now() << "] " << message; \
-        ROS_##level(oss.str().c_str());                    \
-    } while (0)
 
-#define ROS_LOG_TIME_ONCE(level, message)                      \
-    do {                                                       \
-        static bool logged = false;                            \
-        if (!logged) {                                         \
-            std::ostringstream oss;                            \
-            oss << "[" << ros::Time::now() << "] " << message; \
-            ROS_##level(oss.str().c_str());                    \
-            logged = true;                                     \
-        }                                                      \
-    } while (0)
+// Function to initialize the log file with a unique name based on timestamp
+void initLogFile() {
+    std::stringstream log_file_name;
+    log_file_name << "/home/uvify/catkin_ws/src/survey_mission/mission_node_log_" << ros::Time::now().toNSec() << ".txt";
+    log_file.open(log_file_name.str());
+    if (!log_file.is_open()) {
+        ROS_ERROR("Failed to open log file: %s", log_file_name.str().c_str());
+    } else {
+        ROS_INFO("Logging to file: %s", log_file_name.str().c_str());
+    }
+}
+
+
+void logMessage(const std::string& message) {
+    std::ostringstream oss;
+    oss << "[" << ros::Time::now() << "] " << message;
+
+    // Log to ROS
+    ROS_INFO_STREAM(oss.str());
+
+    // Log to file
+    if (log_file.is_open()) {
+        log_file << oss.str() << std::endl;
+        log_file.flush();  // Ensure data is written immediately
+    } else {
+        ROS_WARN("Log file is not open, message not logged to file: %s", message.c_str());
+    }
+}
+
+// Function to close the log file
+void closeLogFile() {
+    if (log_file.is_open()) {
+        log_file.close();
+    }
+}
+

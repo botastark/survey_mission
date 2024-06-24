@@ -1,4 +1,5 @@
 #include "util.cpp"
+#include <ros/console.h>
 
 bool reached_target = false;
 bool current_gps_received = false;
@@ -24,10 +25,10 @@ void armDrone(ros::ServiceClient &arming_client) {
     mavros_msgs::CommandBool arm_cmd;
     arm_cmd.request.value = true;
     if (arming_client.call(arm_cmd) && arm_cmd.response.success) {
-        ROS_LOG_TIME(INFO, "Drone armed");
+        logMessage("Drone armed");
         ROS_INFO("Drone armed");
     } else {
-        ROS_LOG_TIME(ERROR, "Failed to arm the drone");
+        logMessage("Failed to arm the drone");
         ROS_ERROR("Failed to arm the drone");
     }
 }
@@ -66,6 +67,8 @@ void takePicture(ros::Publisher &take_picture_pub) {
 int main(int argc, char **argv) {
     ros::init(argc, argv, "mission_node");
     ros::NodeHandle nh;
+// Initialize log file
+    initLogFile();
 
     ros::Subscriber state_sub =
         nh.subscribe<mavros_msgs::State>("mavros/state", 10, stateCallback);
@@ -93,16 +96,16 @@ int main(int argc, char **argv) {
         rate.sleep();
     }
     ROS_INFO("FCU connected");
-    ROS_LOG_TIME(INFO, "FCU connected");
+    logMessage("FCU connected!");
 
     // wait for position information
-    while (ros::ok() && !current_gps_received) {
-        ROS_INFO_ONCE("Waiting for GPS signal...");
-        ros::spinOnce();
-        rate.sleep();
-    }
-    ROS_INFO("GPS position received");
-    ROS_LOG_TIME(INFO, "GPS position received");
+    //while (ros::ok() && !current_gps_received) {
+    //    ROS_INFO_ONCE("Waiting for GPS signal...");
+    //    ros::spinOnce();
+    //    rate.sleep();
+    //}
+    //ROS_INFO("GPS position received");
+    logMessage("GPS position received");
 
     geographic_msgs::GeoPoseStamped goal_position, home_position;
     home_position = create_pose(current_gps.pose.position.latitude,
@@ -111,7 +114,8 @@ int main(int argc, char **argv) {
     ROS_INFO("HOME POSITION");
     ROS_INFO_STREAM(home_position);
 
-    ROS_LOG_TIME(INFO, "HOME POSITION: lat=" + std::to_string(home_position.pose.position.latitude) +
+
+    logMessage( "HOME POSITION: lat=" + std::to_string(home_position.pose.position.latitude) +
                            ", lon=" + std::to_string(home_position.pose.position.longitude) +
                            ", alt=" + std::to_string(home_position.pose.position.altitude));
 
@@ -119,7 +123,7 @@ int main(int argc, char **argv) {
 
     std::vector<GPSPosition> waypoints = readWaypointsFromFile(filename, current_gps.pose.position.altitude);
     if (waypoints.empty()) {
-        ROS_LOG_TIME(ERROR, "Couldn't read waypoints file");
+        logMessage("Couldn't read waypoints file");
         //     waypoints = {
         //         {41.73724768996549, 12.513644919120955, 96},
         //         {41.73722578686695, 12.513646971647058, 96},
@@ -144,7 +148,7 @@ int main(int argc, char **argv) {
         rate.sleep();
     }
     // home_position.pose.position.altitude = temp_home_alt;
-    ROS_LOG_TIME(INFO, "Sending a few point before starting");
+    logMessage("Sending a few point before starting");
     // setMode(set_mode_client, "OFFBOARD");
     ros::Time last_request = ros::Time::now();
 
@@ -158,7 +162,7 @@ int main(int argc, char **argv) {
     }
 
     ROS_INFO("Drone is in OFFBOARD mode.");
-    ROS_LOG_TIME(INFO, "Drone is in OFFBOARD mode.");
+    logMessage("Drone is in OFFBOARD mode.");
 
     // Wait for the drone to be armed (assuming arming is done via qgc)
     while (ros::ok() && !current_state.armed) {
@@ -170,15 +174,14 @@ int main(int argc, char **argv) {
     }
 
     ROS_INFO("Drone is armed.");
-    ROS_LOG_TIME(INFO, "Drone is armed.");
+    logMessage( "Drone is armed.");
     ros::Time start_time;
     // Navigate to each waypoint
     for (const auto &waypoint : waypoints) {
         std::string waypoint_log = "Navigating to waypoint: " +
-                                   std::to_string(waypoint.latitude) + ", " +
-                                   std::to_string(waypoint.longitude) + ", " +
+                                   std::to_string(waypoint.latitude) + ", " + std::to_string(waypoint.longitude) + ", " +
                                    std::to_string(waypoint.altitude);
-        ROS_LOG_TIME(INFO, waypoint_log);
+        logMessage( waypoint_log);
         ROS_INFO_STREAM(waypoint_log);
 
         goal_position = create_pose(waypoint.latitude, waypoint.longitude, waypoint.altitude);
@@ -186,12 +189,12 @@ int main(int argc, char **argv) {
         // Wait for waypoint reached
         while (ros::ok() && !reached_target) {
             global_pos_pub.publish(goal_position);
-            ROS_LOG_TIME_ONCE(INFO, "OMW");
+
             ros::spinOnce();
             rate.sleep();
         }
         ROS_INFO("reached waypoint");
-        ROS_LOG_TIME(INFO, "reached waypoint");
+        logMessage( "reached waypoint");
         // Hover for 1 second to stabilize the drone
         start_time = ros::Time::now();
         while (ros::ok() && (ros::Time::now() - start_time).toSec() < 1.0) {
@@ -203,7 +206,7 @@ int main(int argc, char **argv) {
         // Take picture at waypoint
         takePicture(take_picture_pub);
         ROS_INFO("Taking picture");
-        ROS_LOG_TIME(INFO, "Taking picture");
+        logMessage("Taking picture");
 
         start_time = ros::Time::now();
         while (ros::ok() && (ros::Time::now() - start_time).toSec() < 1.0) {
@@ -220,7 +223,7 @@ int main(int argc, char **argv) {
         home_position.header.stamp = ros::Time::now();
         global_pos_pub.publish(home_position);
         ROS_INFO("Returning to home");
-        ROS_LOG_TIME_ONCE(INFO, "Returning to home");
+        logMessage("Returning to home");
 
         ros::spinOnce();
         rate.sleep();
@@ -230,7 +233,7 @@ int main(int argc, char **argv) {
     setMode(set_mode_client, "AUTO.LAND");
 
     ROS_INFO("Drone landing");
-    ROS_LOG_TIME(INFO, "Drone landing");
+    logMessage("Drone landing");
     ros::Time land_start = ros::Time::now();
 
     while (ros::ok() && current_state.mode != "AUTO.LAND") {
@@ -245,9 +248,10 @@ int main(int argc, char **argv) {
     }
 
     ROS_INFO("Drone has landed");
-    ROS_LOG_TIME(INFO, "Drone has landed");
+    logMessage("Drone has landed");
 
     ROS_INFO("Mission complete");
-    ROS_LOG_TIME(INFO, "Mission complete");
+    logMessage("Mission complete");
+    closeLogFile(); 
     return 0;
 }
