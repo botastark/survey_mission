@@ -70,7 +70,6 @@ std::vector<GPSPosition> readWaypointsFromFile(const std::string& filename, doub
     return waypoints;
 }
 
-
 // Function to initialize the log file with a unique name based on timestamp
 void initLogFile() {
     std::stringstream log_file_name;
@@ -82,7 +81,6 @@ void initLogFile() {
         ROS_INFO("Logging to file: %s", log_file_name.str().c_str());
     }
 }
-
 
 void logMessage(const std::string& message) {
     std::ostringstream oss;
@@ -106,4 +104,3 @@ void closeLogFile() {
         log_file.close();
     }
 }
-

@@ -1,5 +1,6 @@
-#include "util.cpp"
 #include <ros/console.h>
+
+#include "util.cpp"
 
 bool reached_target = false;
 bool current_gps_received = false;
@@ -67,7 +68,7 @@ void takePicture(ros::Publisher &take_picture_pub) {
 int main(int argc, char **argv) {
     ros::init(argc, argv, "mission_node");
     ros::NodeHandle nh;
-// Initialize log file
+    // Initialize log file
     initLogFile();
 
     ros::Subscriber state_sub =
@@ -99,12 +100,12 @@ int main(int argc, char **argv) {
     logMessage("FCU connected!");
 
     // wait for position information
-    //while (ros::ok() && !current_gps_received) {
+    // while (ros::ok() && !current_gps_received) {
     //    ROS_INFO_ONCE("Waiting for GPS signal...");
     //    ros::spinOnce();
     //    rate.sleep();
     //}
-    //ROS_INFO("GPS position received");
+    // ROS_INFO("GPS position received");
     logMessage("GPS position received");
 
     geographic_msgs::GeoPoseStamped goal_position, home_position;
@@ -114,10 +115,9 @@ int main(int argc, char **argv) {
     ROS_INFO("HOME POSITION");
     ROS_INFO_STREAM(home_position);
 
-
-    logMessage( "HOME POSITION: lat=" + std::to_string(home_position.pose.position.latitude) +
-                           ", lon=" + std::to_string(home_position.pose.position.longitude) +
-                           ", alt=" + std::to_string(home_position.pose.position.altitude));
+    logMessage("HOME POSITION: lat=" + std::to_string(home_position.pose.position.latitude) +
+               ", lon=" + std::to_string(home_position.pose.position.longitude) +
+               ", alt=" + std::to_string(home_position.pose.position.altitude));
 
     std::string filename = "/home/uvify/catkin_ws/src/survey_mission/path/waypoints.txt";
 
@@ -174,14 +174,14 @@ int main(int argc, char **argv) {
     }
 
     ROS_INFO("Drone is armed.");
-    logMessage( "Drone is armed.");
+    logMessage("Drone is armed.");
     ros::Time start_time;
     // Navigate to each waypoint
     for (const auto &waypoint : waypoints) {
         std::string waypoint_log = "Navigating to waypoint: " +
                                    std::to_string(waypoint.latitude) + ", " + std::to_string(waypoint.longitude) + ", " +
                                    std::to_string(waypoint.altitude);
-        logMessage( waypoint_log);
+        logMessage(waypoint_log);
         ROS_INFO_STREAM(waypoint_log);
 
         goal_position = create_pose(waypoint.latitude, waypoint.longitude, waypoint.altitude);
@@ -194,7 +194,7 @@ int main(int argc, char **argv) {
             rate.sleep();
         }
         ROS_INFO("reached waypoint");
-        logMessage( "reached waypoint");
+        logMessage("reached waypoint");
         // Hover for 1 second to stabilize the drone
         start_time = ros::Time::now();
         while (ros::ok() && (ros::Time::now() - start_time).toSec() < 1.0) {
@@ -252,6 +252,6 @@ int main(int argc, char **argv) {
 
     ROS_INFO("Mission complete");
     logMessage("Mission complete");
-    closeLogFile(); 
+    closeLogFile();
     return 0;
 }

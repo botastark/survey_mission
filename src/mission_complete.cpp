@@ -30,7 +30,6 @@ void targetCallback(const geographic_msgs::GeoPoseStamped::ConstPtr &msg) {
 }
 
 std_msgs::Bool missionComplete() {
-
     double vert_dist =
         haversine(current_target_global.x, current_target_global.y,
                   current_gps.pose.position.latitude,
@@ -39,25 +38,25 @@ std_msgs::Bool missionComplete() {
         current_gps.pose.position.altitude - current_target_global.z;
     double dist = sqrt(vert_dist * vert_dist + hori_dist * hori_dist);
     log_file_cher << "gps h: " << current_gps.pose.position.altitude
-             << " target h: " << current_target_global.z << std::endl;
+                  << " target h: " << current_target_global.z << std::endl;
 
     log_file_cher << "gps lat: " << current_gps.pose.position.latitude
-             << " target lat: " << current_target_global.x << std::endl;
+                  << " target lat: " << current_target_global.x << std::endl;
 
     log_file_cher << "gps  lon: " << current_gps.pose.position.longitude
-             << " target lon: " << current_target_global.y << std::endl;
+                  << " target lon: " << current_target_global.y << std::endl;
     // Log the data to the file
 
     log_file_cher << "dist: " << dist << " vert_dist: " << vert_dist
-             << " hori_dist: " << hori_dist << std::endl;
+                  << " hori_dist: " << hori_dist << std::endl;
     if (dist < tolerance && vert_dist < 0.11 && hori_dist < 0.2 && dist != 0) {
         reached_target.data = true;
         ROS_INFO("Reached waypoint!");
         log_file_cher << "reached" << std::endl;
     } else {
         reached_target.data = false;
-        //ROS_INFO_STREAM("dist: " << dist << " vert_dist: " << vert_dist
-        //                         << " hori_dist: " << hori_dist);
+        // ROS_INFO_STREAM("dist: " << dist << " vert_dist: " << vert_dist
+        //                          << " hori_dist: " << hori_dist);
     }
 
     return reached_target;
@@ -77,7 +76,6 @@ int main(int argc, char **argv) {
         nh_.subscribe<geographic_msgs::GeoPoseStamped>(
             "mavros/setpoint_position/global", 10, targetCallback);
     ros::Rate rate(20.0);
-    
 
     // Open a log file for writing
     log_file_cher.open("/home/uvify/catkin_ws/src/survey_mission/mission_log.txt");
