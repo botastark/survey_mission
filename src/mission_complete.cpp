@@ -3,7 +3,10 @@
 std_msgs::Bool reached_target;
 geometry_msgs::Vector3 current_target_global;
 std::ofstream log_file_cher;
-double tolerance = 0.20;
+
+double overall_tolerance = 0.20; // Default value, will be updated from file
+double xy_tolerance = 0.11;      // Default value, will be updated from file
+double h_tolerance = 0.2;        // Default value, will be updated from file
 
 // Callback functions
 void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &msg) {
@@ -49,7 +52,7 @@ std_msgs::Bool missionComplete() {
 
     log_file_cher << "dist: " << dist << " vert_dist: " << vert_dist
                   << " hori_dist: " << hori_dist << std::endl;
-    if (dist < tolerance && vert_dist < 0.11 && hori_dist < 0.2 && dist != 0) {
+    if (dist < overall_tolerance && vert_dist < xy_tolerance && hori_dist < h_tolerance && dist != 0) {
         reached_target.data = true;
         ROS_INFO("Reached waypoint!");
         log_file_cher << "reached" << std::endl;
@@ -85,6 +88,24 @@ int main(int argc, char **argv) {
         ROS_ERROR("Failed to open log file.");
         return 1;
     }
+    // Read tolerances from file
+    std::ifstream tol_file("/home/uvify/catkin_ws/src/survey_mission/path/tolerances.txt");
+    if (tol_file.is_open()) {
+        tol_file >> overall_tolerance >> xy_tolerance >> h_tolerance;
+        tol_file.close();
+    } else {
+        ROS_WARN("Failed to open tolerances file. Using default values.");
+    }
+
+    // Construct log message using std::string
+    std::string log_msg = "Tolerances used: overall_tolerance=" +
+                          std::to_string(overall_tolerance) +
+                          ", xy_tolerance=" + std::to_string(xy_tolerance) +
+                          ", h_tolerance=" + std::to_string(h_tolerance);
+
+    ROS_INFO_STREAM(log_msg);
+    // Write message to log file
+    log_file_cher << log_msg << std::endl;
 
     while (ros::ok()) {
         reached_target_pub.publish(missionComplete());
