@@ -69,3 +69,21 @@ std::vector<GPSPosition> readWaypointsFromFile(const std::string& filename, doub
     infile.close();
     return waypoints;
 }
+
+#define ROS_LOG_TIME(level, message)                       \
+    do {                                                   \
+        std::ostringstream oss;                            \
+        oss << "[" << ros::Time::now() << "] " << message; \
+        ROS_##level(oss.str().c_str());                    \
+    } while (0)
+
+#define ROS_LOG_TIME_ONCE(level, message)                      \
+    do {                                                       \
+        static bool logged = false;                            \
+        if (!logged) {                                         \
+            std::ostringstream oss;                            \
+            oss << "[" << ros::Time::now() << "] " << message; \
+            ROS_##level(oss.str().c_str());                    \
+            logged = true;                                     \
+        }                                                      \
+    } while (0)
