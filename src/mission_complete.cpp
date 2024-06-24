@@ -56,8 +56,8 @@ std_msgs::Bool missionComplete() {
         log_file << "reached" << std::endl;
     } else {
         reached_target.data = false;
-        ROS_INFO_STREAM("dist: " << dist << " vert_dist: " << vert_dist
-                                 << " hori_dist: " << hori_dist);
+        //ROS_INFO_STREAM("dist: " << dist << " vert_dist: " << vert_dist
+        //                         << " hori_dist: " << hori_dist);
     }
 
     return reached_target;

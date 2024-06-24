@@ -3,7 +3,7 @@
 	<!-- example launch script for PX4 based FCU's -->
 
 	<arg name="fcu_url" default="/dev/ttyTHS0:921600" />
-	<arg name="gcs_url" default="udp://@192.168.0.100:14550" />
+	<arg name="gcs_url" default="udp://@192.168.0.107:14550" />
 
 	<include file="$(find mavros)/launch/px4.launch">
 		<arg name="fcu_url" value="$(arg fcu_url)" />
@@ -12,10 +12,10 @@
 
         <node name="disable_dcm_node" type="disable_DCM_offboard.py" pkg="survey_mission" output="screen">
         </node>
-        <!--
+        
 	<node name="mission_node" type="mission_node" pkg="survey_mission" output="screen" />
         <node name="missionchecker_node" type="missionchecker_node" pkg="survey_mission" output ="screen"/> 
-	-->
+
 
 
 </launch>

@@ -2,7 +2,7 @@
 
 source /opt/ros/melodic/setup.bash
 source ~/catkin_ws/devel/setup.bash
-#start roscore in background (needs check!)
+#start roscore in background
 roscore &
 ROSCORE_PID=$!
 sleep 5

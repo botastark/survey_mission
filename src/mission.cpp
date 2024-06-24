@@ -102,11 +102,11 @@ int main(int argc, char **argv) {
         rate.sleep();
     }
     // wait for position information
-    while (ros::ok() && !current_gps_received) {
-        ROS_INFO_ONCE("Waiting for GPS signal...");
-        ros::spinOnce();
-        rate.sleep();
-    }
+    //while (ros::ok() && !current_gps_received) {
+    //    ROS_INFO_ONCE("Waiting for GPS signal...");
+    //    ros::spinOnce();
+    //    rate.sleep();
+    //}
     ROS_INFO("GPS position received");
 
     geographic_msgs::GeoPoseStamped goal_position, home_position;
@@ -130,20 +130,16 @@ int main(int argc, char **argv) {
     //         {41.737116271373694, 12.513657234256565, 96},
     //         {41.73709517590471, 12.513659211092103, 94},
     //         {41.73707566207436, 12.513700304019201, 94},
-    //         {41.737097565173855, 12.513698251516086, 95}};
-    // }
+    //        {41.737097565173855, 12.513698251516086, 95}};
+     //}
 
-    for (const auto &waypoint : waypoints) {
-        ROS_INFO_STREAM("waypoint: " << waypoint.latitude << ", "
-                                     << waypoint.longitude << ", "
-                                     << waypoint.altitude);
-    }
+    
     double temp_home_alt = home_position.pose.position.altitude;
 
     // send a few setpoints before starting
     for (int i = 100; ros::ok() && i > 0; --i) {
         home_position.header.stamp = ros::Time::now();
-        home_position.pose.position.altitude = temp_home_alt + 2.5;
+        home_position.pose.position.altitude = temp_home_alt+1.5;
         global_pos_pub.publish(home_position);
         ros::spinOnce();
         rate.sleep();
@@ -151,16 +147,26 @@ int main(int argc, char **argv) {
     // home_position.pose.position.altitude = temp_home_alt;
 
     // setMode(set_mode_client, "OFFBOARD");
+    ros::Time last_request = ros::Time::now();
 
-    // Wait for offboard
+    // Wait for offboard (setting to offboard is done via RC)
     while (ros::ok() && current_state.mode != "OFFBOARD") {
+	// keep sending setpoint as heartbeat
+	home_position.header.stamp = ros::Time::now();
+        home_position.pose.position.altitude = temp_home_alt;
+	global_pos_pub.publish(home_position);
         ros::spinOnce();
         rate.sleep();
     }
+    
     ROS_INFO("Drone is in OFFBOARD mode.");
 
     // Wait for the drone to be armed (assuming arming is done via RC)
     while (ros::ok() && !current_state.armed) {
+	// keep setpoint as heartbeat
+	home_position.header.stamp = ros::Time::now();
+        home_position.pose.position.altitude = temp_home_alt;
+	global_pos_pub.publish(home_position);
         ros::spinOnce();
         rate.sleep();
     }
