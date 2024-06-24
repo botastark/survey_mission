@@ -14,7 +14,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <ctime>
 #include <vector>
+#include <iomanip>
+
 
 geographic_msgs::GeoPoseStamped current_gps;
 mavros_msgs::State current_state;
@@ -23,6 +26,7 @@ const double EARTH_RADIUS = 6378137.0;  // in meters (WGS-84 Earth radius)
 const double DEG_TO_RAD = M_PI / 180.0;
 const double RAD_TO_DEG = 180.0 / M_PI;
 std::ofstream log_file;
+std::ofstream log_file_mission;
 
 struct GPSPosition {
     double latitude;   // in degrees

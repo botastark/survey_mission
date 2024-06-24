@@ -10,6 +10,8 @@ Restart=always
 User=uvify
 Environment=DISPLAY=:0
 WorkingDirectory=/home/uvify
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
