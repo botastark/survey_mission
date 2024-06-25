@@ -1,0 +1,17 @@
+# to copy it to sudo cp ~/catkin_ws/src/survey_mission/listen.service /etc/systemd/system/listen.service
+[Unit]
+Description=Listener
+After=network.target
+
+[Service]
+ExecStart=/home/uvify/catkin_ws/src/survey_mission/listen.sh
+Restart=always
+User=uvify
+Environment=DISPLAY=:0
+WorkingDirectory=/home/uvify
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

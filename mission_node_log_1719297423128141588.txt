@@ -1,0 +1,4 @@
+[1719297425.256445974] FCU connected!
+[1719297425.256798004] GPS position received
+[1719297425.257395281] HOME POSITION: lat=0.000000, lon=0.000000, alt=0.000000
+[1719297430.256208574] Sending a few point before starting

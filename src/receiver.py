@@ -19,11 +19,11 @@ def receive_file(save_as, port):
 		file_data = b''.join(file_data).decode('utf-8')
 		# Check if the file already exists
 		if os.path.exists(save_as):
-			print(f"File {save_as} already exists. It will be replaced.")
+			print("File already exists. It will be replaced.")
 		with open(save_as, 'w') as file: 
 			file.write(file_data)
 		conn.close()
-		print(f"File {save_as} received and saved. Waiting for the next update.")
+
 	
 if __name__ == "__main__": 
 	SAVE_AS = '/home/uvify/catkin_ws/src/survey_mission/path/waypoints.txt' 
