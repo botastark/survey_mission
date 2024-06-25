@@ -8,14 +8,12 @@ def receive_file(save_as, port):
 	while True: #indef-ly wait for updates
 		conn, addr = s.accept() 
 		print("Connection from {}".format(addr)) # Receive the data 
-	
 		file_data = []
 		while True: # Save the received data to a file 
-		    data = conn.recv(1024)
-		    if not data:
-			break
-		    file_data.append(data)
-		
+			data = conn.recv(1024)
+			if not data:
+				break
+			file_data.append(data)
 		file_data = b''.join(file_data).decode('utf-8')
 		# Check if the file already exists
 		if os.path.exists(save_as):
@@ -27,5 +25,5 @@ def receive_file(save_as, port):
 	
 if __name__ == "__main__": 
 	SAVE_AS = '/home/uvify/catkin_ws/src/survey_mission/path/waypoints.txt' 
-	PORT = 12345 # This should match the port used by the sender 
+	PORT = 54321 # This should match the port used by the sender 
 	receive_file(SAVE_AS, PORT)

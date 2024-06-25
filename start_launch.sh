@@ -7,7 +7,7 @@ roscore &
 ROSCORE_PID=$!
 sleep 5
 
-roslaunch survey_mission survey_camera.launch
+roslaunch survey_mission survey_camera.launch --wait
 
 # Start the receive_file.py script in the background
 

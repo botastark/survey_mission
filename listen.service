@@ -1,16 +1,18 @@
 # to copy it to sudo cp ~/catkin_ws/src/survey_mission/listen.service /etc/systemd/system/listen.service
 [Unit]
-Description=Listener
+Description=Listener waypoints
 After=network.target
 
 [Service]
-ExecStart=/home/uvify/catkin_ws/src/survey_mission/listen.sh
+ExecStart=/usr/bin/python3 /home/uvify/catkin_ws/src/survey_mission/src/receiver.py
 Restart=always
+RestartSec=5
 User=uvify
-Environment=DISPLAY=:0
-WorkingDirectory=/home/uvify
+Group=uvify
+WorkingDirectory=/home/uvify/catkin_ws/src/survey_mission/src
 StandardOutput=journal
 StandardError=journal
+
 
 [Install]
 WantedBy=multi-user.target
