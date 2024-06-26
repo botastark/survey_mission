@@ -1,0 +1,11 @@
+# ninja log v5
+1	1670	1719243587026771325	CMakeFiles/util.dir/src/util.cpp.o	840cf94dc01e468c
+1	1683	1719243587038771391	CMakeFiles/trigger_node.dir/src/capture_trigger.cpp.o	39e315d6cdfa4414
+1672	1760	1719243587118771833	devel/lib/libutil.so	7af64ef3010a42cf
+1683	1874	1719243587230772451	devel/lib/survey_mission/trigger_node	811d87e9296b1882
+1	2499	1719243587854775892	CMakeFiles/missionchecker_node.dir/src/mission_complete.cpp.o	f147f58409c7282e
+0	2669	1719243588022776818	CMakeFiles/mission_node.dir/src/mission.cpp.o	6a09bd8f513353ee
+2499	2727	1719243588082777148	devel/lib/survey_mission/missionchecker_node	596d3a9fd0b9753e
+2669	2859	1719243588214777876	devel/lib/survey_mission/mission_node	41f3a8e9473eabc6
+1	3434	1719243588786781030	CMakeFiles/image_capture_node.dir/src/image_capture.cpp.o	be7c1b90aee53d0a
+3435	3980	1719243589334784052	devel/lib/survey_mission/image_capture_node	62d59f19469ec9ef

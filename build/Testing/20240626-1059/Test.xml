@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Site BuildName="(empty)"
+	BuildStamp="20240626-1059-Experimental"
+	Name="bota"
+	Generator="ctest-3.16.3"
+	CompilerName="/usr/bin/c++"
+	CompilerVersion="9.4.0"
+	OSName="Linux"
+	Hostname="bota"
+	OSRelease="5.15.0-107-generic"
+	OSVersion="#117~20.04.1-Ubuntu SMP Tue Apr 30 10:35:57 UTC 2024"
+	OSPlatform="x86_64"
+	Is64Bits="1"
+	VendorString="AuthenticAMD"
+	VendorID="Advanced Micro Devices"
+	FamilyID="23"
+	ModelID="113"
+	ProcessorCacheSize="512"
+	NumberOfLogicalCPU="12"
+	NumberOfPhysicalCPU="6"
+	TotalVirtualMemory="2047"
+	TotalPhysicalMemory="15888"
+	LogicalProcessorsPerPhysical="2"
+	ProcessorClockFrequency="4110.52"
+	>
+	<Testing>
+		<StartDateTime>Jun 26 12:59 CEST</StartDateTime>
+		<StartTestTime>1719399544</StartTestTime>
+		<TestList/>
+		<EndDateTime>Jun 26 12:59 CEST</EndDateTime>
+		<EndTestTime>1719399544</EndTestTime>
+		<ElapsedMinutes>0</ElapsedMinutes>
+	</Testing>
+</Site>
