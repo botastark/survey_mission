@@ -7,9 +7,9 @@ std_msgs::Bool reached_target;
 geometry_msgs::Vector3 current_target_global;
 Logger *logger;  // Pointer to Logger instance
 
-double overall_tolerance = 0.20;
-double xy_tolerance = 0.11;
-double h_tolerance = 0.2;
+double overall_tolerance = 0.40;
+double xy_tolerance = 0.20;
+double h_tolerance = 0.25;
 
 float home_asml_alt = 0.0;
 bool current_gps_received = false;
@@ -42,6 +42,7 @@ std_msgs::Bool missionComplete() {
     float target_alt = 0.0;
     if (altitude_mode == "int") {  // current - asml && target - asml
         current_alt = current_gps.pose.position.altitude;
+	//current_alt = altitude.asml;
         target_alt = current_target_global.z;
     } else if (altitude_mode == "rel_alt") {  // current - rel && target - rel (add home alt)
         current_alt = altitude.relative;

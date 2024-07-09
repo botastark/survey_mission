@@ -188,12 +188,12 @@ int main(int argc, char **argv) {
         while (ros::ok() && !reached_target) {
             global_pos_pub.publish(home_position);
             ROS_INFO_ONCE("Returning to home");
-            logger.logMessageOnce("Returning to home");
+            logger.logMessage("Returning to home");
             ros::spinOnce();
             rate.sleep();
         }
 
-        // Wait for landing
+
         // Wait for landing
         while (ros::ok() && current_state.mode != "AUTO.LAND") {
             setMode(set_mode_client, "AUTO.LAND");
