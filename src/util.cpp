@@ -254,3 +254,36 @@ std::string to_string_with_precision(double value, int precision = 14) {
     oss << std::fixed << std::setprecision(precision) << value;
     return oss.str();
 }
+
+
+#include <fstream>
+
+struct ImageMetadata {
+    ros::Time timestamp;
+    double latitude;
+    double longitude;
+    double altitude;
+    float orientation; // Assuming orientation data type
+
+    void writeToTxt(const std::string& filename) const {
+        std::ofstream file(filename, std::ios_base::out | std::ios_base::app); // Open in append mode
+        if (file.is_open()) {
+            file << "Timestamp: " << timestamp << std::endl;
+            file.flush(); // Flush the line immediately
+            file << "Latitude: " << latitude << std::endl;
+            file.flush(); // Flush the line immediately
+            file << "Longitude: " << longitude << std::endl;
+            file.flush(); // Flush the line immediately
+            file << "Altitude: " << altitude << std::endl;
+            file.flush(); // Flush the line immediately
+            file << "Orientation: " << orientation << std::endl;
+            file.flush(); // Flush the line immediately
+            file << "---------------------\n";
+            file.flush(); // Flush the line immediately
+        } else {
+            // Handle file open failure
+            std::cerr << "Failed to open file: " << filename << std::endl;
+        }
+    }
+};
+

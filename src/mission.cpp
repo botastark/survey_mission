@@ -28,11 +28,19 @@ void reachedTargetCallback(const std_msgs::Bool::ConstPtr &msg) {
 }
 
 // TODO: Function to take a picture
-void takePicture(ros::Publisher &take_picture_pub) {
+void takePicture(ros::Publisher &take_picture_pub, float current_orientation) {
     std_msgs::Bool msg;
     msg.data = true;
     take_picture_pub.publish(msg);
+    
+    ImageMetadata metadata;
+    metadata.timestamp = ros::Time::now();
+    metadata.latitude = current_gps.pose.position.latitude;
+    metadata.longitude = current_gps.pose.position.longitude;
+    metadata.altitude = current_gps.pose.position.altitude;
+    metadata.orientation = current_orientation;
 }
+
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "mission_node");
@@ -167,7 +175,13 @@ int main(int argc, char **argv) {
             }
 
             // Take picture at waypoint
-            takePicture(take_picture_pub);
+            
+	    float current_orientation;
+	    current_orientation = 0.0; // Replace with actual orientation data
+
+	    takePicture(take_picture_pub, current_orientation);
+
+            //takePicture(take_picture_pub);
             ROS_INFO("Taking picture");
             logger.logMessage("Taking picture");
 
