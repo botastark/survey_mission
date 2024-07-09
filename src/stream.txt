@@ -1,9 +1,41 @@
 Stream to laptop with ip (192.168.67.162) and port 5000
 
-gst-launch-1.0 nvarguscamerasrc sensor_id=0 ! nvvidconv ! omxh265enc insert-vui=1 ! h265parse ! rtph265pay config-interval=1 ! udpsink host=192.168.67.162 port=5000
+simple:
+
+gst-launch-1.0 nvarguscamerasrc sensor_id=0 ! nvvidconv ! omxh265enc insert-vui=1 ! h265parse ! rtph265pay config-interval=1 ! udpsink host=192.168.0.107 port=5000
 
 
+Reference:
+gst-launch-1.0 nvarguscamerasrc sensor_id=0 ! 'video/x-raw(memory:NVMM),  width=3264, height=1848, format=(string)NV12, framerate=(fraction)28/1' ! nvvidconv flip-method=0 ! omxh265enc ! h265parse ! rtph265pay config-interval=1 !  udpsink host=192.168.0.107 port=5000
+
+To modify for opencv:
+gst-launch-1.0 nvarguscamerasrc sensor_id=0 ! 'video/x-raw(memory:NVMM), width=3264, height=1848, format=(string)NV12, framerate=(fraction)28/1' ! nvvidconv ! omxh265enc ! h265parse ! rtph265pay config-interval=1 ! udpsink host=192.168.0.107 port=5000
 
     
 gst-launch-1.0 nvarguscamerasrc sensor-id=0 ! 'video/x-raw(memory:NVMM), width=1920, height=1080, format=NV12' ! nvvidconv ! 'video/x-raw, width=1920, height=1080, format=I420' ! jpegenc ! filesink location=/home/uvify/Desktop/survey/img.jpeg
 
+
+
+
+
+gst-launch-1.0 nvarguscamerasrc sensor-id=0 exposuretimerange="10000 10000" gainrange="1 1" aelock=true ! nvvidconv ! videobalance contrast=1.5 brightness=-0.3 ! omxh265enc insert-vui=1 ! h265parse ! rtph265pay config-interval=1 ! udpsink host=192.168.0.107 port=5000
+
+
+///svae imgs with different params
+
+gst-launch-1.0 nvarguscamerasrc sensor_id=0 num-buffers=1 ! 'video/x-raw(memory:NVMM),  width=1920, height=1080, format=(string)P010_10LE, framerate=(fraction)28/1'  ! nvvidconv flip-method=0 ! videoconvert ! pngenc ! filesink location=/home/uvify/Desktop/img.png
+
+gst-launch-1.0 nvarguscamerasrc sensor_id=0 exposuretimerange="10000 10000" gainrange="1 1" aelock=true num-buffers=1 ! 'video/x-raw(memory:NVMM),  width=1920, height=1080, format=(string)P010_10LE, framerate=(fraction)28/1'  ! nvvidconv flip-method=0 ! videoconvert ! pngenc ! filesink location=/home/uvify/Desktop/img_exp.png
+
+gst-launch-1.0 nvarguscamerasrc sensor_id=0 num-buffers=1 ! 'video/x-raw(memory:NVMM),  width=1920, height=1080, format=(string)P010_10LE, framerate=(fraction)28/1'  ! nvvidconv flip-method=0 ! videobalance contrast=1.5 brightness=-0.3 ! videoconvert ! pngenc ! filesink location=/home/uvify/Desktop/img_balance.png
+
+gst-launch-1.0 nvarguscamerasrc sensor_id=0 exposuretimerange="10000 10000" gainrange="1 1" aelock=true num-buffers=1  ! 'video/x-raw(memory:NVMM),  width=1920, height=1080, format=(string)P010_10LE, framerate=(fraction)28/1'  ! nvvidconv flip-method=0 ! videobalance contrast=1.5 brightness=-0.3 ! videoconvert ! pngenc ! filesink location=/home/uvify/Desktop/img_balance_exp.png
+
+
+
+gst-launch-1.0 nvarguscamerasrc sensor_id=0 sensor-mode=2 ! 'video/x-raw(memory:NVMM),  width=1920, height=1080, format=(string)NV12, framerate=(fraction)28/1' ! nvvidconv flip-method=0  ! omxh265enc insert-vui=1 ! h265parse ! rtph265pay config-interval=1 ! udpsink host=192.168.0.107 port=5000
+
+gst-launch-1.0 nvarguscamerasrc sensor_id=0 sensor-mode=2 num-buffers=1 ! 'video/x-raw(memory:NVMM),  width=1920, height=1080, format=(string)NV12, framerate=(fraction)28/1' ! nvvidconv flip-method=0  ! h265parse !  videoconvert ! pngenc ! filesink location=/home/uvify/Desktop/img_nv12.png
+
+
+gst-launch-1.0 nvarguscamerasrc sensor_id=0 sensor-mode=2 ! 'video/x-raw(memory:NVMM),  width=1920, height=1080, format=(string)NV12, framerate=(fraction)28/1' ! nvvidconv !  omxh265enc insert-vui=1 ! h265parse  ! filesink location=/home/uvify/Desktop/experiments/vid.mp4
