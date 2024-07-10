@@ -1,0 +1,18 @@
+# to copy it to sudo cp ~/catkin_ws/src/survey_mission/listen_tol.service /etc/systemd/system/listen_tol.service
+[Unit]
+Description=Listener Tolerance
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/uvify/catkin_ws/src/survey_mission/src/receive_tolerance.py
+Restart=always
+RestartSec=5
+User=uvify
+Group=uvify
+WorkingDirectory=/home/uvify/catkin_ws/src/survey_mission/src
+StandardOutput=journal
+StandardError=journal
+
+
+[Install]
+WantedBy=multi-user.target

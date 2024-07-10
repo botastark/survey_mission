@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv){
     ros::init(argc, argv, "image_trigger_publisher");
     ros::NodeHandle nh;
 
