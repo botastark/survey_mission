@@ -9,20 +9,24 @@
 #include <sstream>
 #include <unordered_map>
 
+cv::VideoCapture video_capture;
+cv::Mat frame;
 
+std::string base_path = "/home/uvify/Desktop/offboard_images/";
+
+std::string camera_param_path = "/home/uvify/catkin_ws/src/survey_mission/path/camera_params.txt";
 
 std::unordered_map<std::string, std::string> readConfigFile(const std::string& filename) {
-    std::unordered_map<std::string, std::string> config;
-    std::ifstream file(filename);
-    std::string line;
-    while (std::getline(file, line)) {
-        std::istringstream line_stream(line);
-        std::string key, value;
-        if (std::getline(line_stream, key, '=') && std::getline(line_stream, value)) {
-            config[key] = value;
-        }
-    }
-    return config;
+	std::unordered_map<std::string, std::string> config;
+	std::ifstream file(filename);
+	std::string line;
+	while (std::getline(file, line)) {
+		std::istringstream line_stream(line);
+		std::string key, value;
+        	if (std::getline(line_stream, key, '=') && std::getline(line_stream, value)) {
+			config[key] = value;
+        	}
+    	}return config;
 }
 
 
@@ -55,14 +59,6 @@ std::string gstreamer_pipeline( int wbmode = 0,
 }
 
 
-
-
-cv::VideoCapture video_capture;
-cv::Mat frame;
-
-std::string base_path = "/home/uvify/Desktop/offboard_images/";
-
-
 std::string getCurrentDateTime() {
     auto now = std::chrono::system_clock::now();
     auto ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
@@ -90,6 +86,8 @@ void ensureDirectoryExists(const std::string& path) {
     }
 }
 
+
+
 void saveImageCallback(const std_msgs::Bool::ConstPtr& msg) {
     if (msg->data) {
         video_capture >> frame;
@@ -97,16 +95,12 @@ void saveImageCallback(const std_msgs::Bool::ConstPtr& msg) {
 	    std::string dateFolder = base_path;
 
             // Create directory for current date if it does not exist
-            std::time_t rawtime = std::time(nullptr);
-            struct std::tm* timeinfo = std::localtime(&rawtime);
-            char buffer[80];
-            strftime(buffer, sizeof(buffer), "%Y-%m-%d", timeinfo);
-            dateFolder += buffer;
+            
+            dateFolder += createDateFolder();
 
             // Check if directory exists, create if not
             ensureDirectoryExists(dateFolder);
             std::string filename = dateFolder + "/" + getCurrentDateTime() + ".png";
-            
             
             cv::imwrite(filename, frame);
             // ROS_INFO("Image captured: %s", filename.c_str());
@@ -122,11 +116,10 @@ int main(int argc, char** argv) {
 	ros::Subscriber sub = nh_camera.subscribe("/save_image", 20, saveImageCallback);
 
 	// Read configuration from text file
-	std::unordered_map<std::string, std::string> config = readConfigFile("/home/uvify/catkin_ws/src/survey_mission/src/camera_params.txt");
+	std::unordered_map<std::string, std::string> config = readConfigFile(camera_param_path);
 	
 	int wbmode = std::stoi(config["wbmode"]);
 	int capture_width = std::stoi(config["capture_width"]);
-
 	int capture_height = std::stoi(config["capture_height"]);
 	int framerate = std::stoi(config["framerate"]);
 	std::string format = config["format"];
@@ -141,14 +134,10 @@ int main(int argc, char** argv) {
 
 	std::string pipeline = gstreamer_pipeline(wbmode, capture_width, capture_height, framerate, format, flip_method, contrast, brightness, exposure_time_min, exposure_time_max, gain_min, gain_max, aelock);
 
-
-
 	//std::string pipeline = gstreamer_pipeline();
-	std::cout << "Using pipeline: \n\t" << pipeline << "\n";
+	//std::cout << "Using pipeline: \n\t" << pipeline << "\n";
 
 	video_capture.open(pipeline, cv::CAP_GSTREAMER);
-
-
 
 	if (!video_capture.isOpened()) {
 		ROS_ERROR("Failed to open camera.");
@@ -156,14 +145,11 @@ int main(int argc, char** argv) {
 	}
 
 
-    while (ros::ok()) {
-        video_capture >> frame;
-        ros::spinOnce();
-
-    }
-    ros::spin();
-    
-    video_capture.release();
-
-    return 0;
+	while (ros::ok()) {
+		video_capture >> frame;
+		ros::spinOnce();
+	}
+	ros::spin();
+	video_capture.release();
+	return 0;
 }

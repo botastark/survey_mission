@@ -69,6 +69,7 @@ std::vector<GPSPosition> readWaypointsFromFile(const std::string &filename, doub
     infile.close();
     return waypoints;
 }
+
 // http://docs.ros.org/en/noetic/api/mavros_msgs/html/msg/GlobalPositionTarget.html
 mavros_msgs::GlobalPositionTarget create_pose(double latitude,
                                               double longitude,
@@ -255,6 +256,13 @@ std::string to_string_with_precision(double value, int precision = 14) {
     return oss.str();
 }
 
+std::string createDateFolder(){
+	std::time_t rawtime = std::time(nullptr);
+	struct std::tm* timeinfo = std::localtime(&rawtime);
+	char buffer[80];
+	strftime(buffer, sizeof(buffer), "%Y-%m-%d", timeinfo);
+	return buffer;
+}
 
 #include <fstream>
 

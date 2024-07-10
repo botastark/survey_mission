@@ -3,7 +3,8 @@ bool reached_target = false;
 bool current_gps_received = false;
 std::string altitude_mode = "rel_alt";  //"rel_alt" and "terrain_alt" "int"
 
-std::string filename = "/home/uvify/catkin_ws/src/survey_mission/path/waypoints.txt";  // File containing waypoints
+std::string waypoint_filename = "/home/uvify/catkin_ws/src/survey_mission/path/waypoints.txt";  // File containing waypoints
+std::string img_metadata_filename = "/home/uvify/Desktop/offboard_images/metadata/"; // File containing waypoints
 
 mavros_msgs::Altitude altitude;
 
@@ -27,7 +28,8 @@ void reachedTargetCallback(const std_msgs::Bool::ConstPtr &msg) {
     reached_target = msg->data;
 }
 
-// TODO: Function to take a picture
+// Function to take a picture
+// TODO: Add metadata
 void takePicture(ros::Publisher &take_picture_pub, float current_orientation) {
     std_msgs::Bool msg;
     msg.data = true;
@@ -39,6 +41,7 @@ void takePicture(ros::Publisher &take_picture_pub, float current_orientation) {
     metadata.longitude = current_gps.pose.position.longitude;
     metadata.altitude = current_gps.pose.position.altitude;
     metadata.orientation = current_orientation;
+    metadata.writeToTxt("/path/to/metadata.txt");
 }
 
 
@@ -62,6 +65,8 @@ int main(int argc, char **argv) {
         ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
         ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
         ros::Rate rate(20.0);
+        
+        // for logging file to recognise if node was killed
         signal(SIGINT, sigintHandler);
         signal(SIGTERM, sigintHandler);
 
@@ -105,7 +110,7 @@ int main(int argc, char **argv) {
                           ", lon=" + std::to_string(home_position.longitude) +
                           ", alt=" + std::to_string(home_position.altitude));
 
-        std::vector<GPSPosition> waypoints = readWaypointsFromFile(filename, current_gps.pose.position.altitude, altitude_mode);
+        std::vector<GPSPosition> waypoints = readWaypointsFromFile(waypoint_filename, current_gps.pose.position.altitude, altitude_mode);
 
         if (waypoints.empty()) {
             logger.logMessage("Couldn't read waypoints file");
@@ -121,10 +126,8 @@ int main(int argc, char **argv) {
 
         // setMode(set_mode_client, "OFFBOARD");
 
-        // Waiting for OFFBOARD
-        // Wait for offboard (setting to offboard is done via RC/QGC)
+        // Waiting for OFFBOARD && keep sending setpoint as heartbeat
         while (ros::ok() && current_state.mode != "OFFBOARD") {
-            // keep sending setpoint as heartbeat
             global_pos_pub.publish(home_position);
             logger.logMessageOnce("setting to OFFBOARD");
             ros::spinOnce();
@@ -175,7 +178,6 @@ int main(int argc, char **argv) {
             }
 
             // Take picture at waypoint
-            
 	    float current_orientation;
 	    current_orientation = 0.0; // Replace with actual orientation data
 
