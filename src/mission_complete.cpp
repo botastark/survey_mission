@@ -1,7 +1,8 @@
 #include "util.cpp"
 
-mavros_msgs::Altitude altitude;
-std::string altitude_mode = "rel_alt";  //"rel_alt" and "terrain_alt" "int"
+// mavros_msgs::Altitude altitude;
+// std::string altitude_mode = "rel_alt";  //"rel_alt" and "terrain_alt" "int"
+// std::string tol_filename = "/home/uvify/catkin_ws/src/survey_mission/path/tolerances.txt";
 
 std_msgs::Bool reached_target;
 geometry_msgs::Vector3 current_target_global;
@@ -13,53 +14,55 @@ double h_tolerance = 0.25;
 
 float home_asml_alt = 0.0;
 bool current_gps_received = false;
+
 // Callback functions
 void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &msg) {
+    current_gps_received = true;
     current_gps.pose.position.altitude =
         ellipsoid_height_to_amsl(msg->latitude, msg->longitude, msg->altitude);
     current_gps.header.stamp = msg->header.stamp;
     current_gps.pose.position.latitude = msg->latitude;
     current_gps.pose.position.longitude = msg->longitude;
 }
+
 void altCallback(const mavros_msgs::Altitude::ConstPtr &msg) {
     altitude = *msg;
 }
+
 void stateCallback(const mavros_msgs::State::ConstPtr &msg) {
     current_state = *msg;
 }
 
 void targetCallback(const mavros_msgs::GlobalPositionTarget::ConstPtr &msg) {
     mavros_msgs::GlobalPositionTarget waypoint = *msg;
-    current_target_global.x = waypoint.latitude;   // Update latitude
-    current_target_global.y = waypoint.longitude;  // Update longitude
-    current_target_global.z = waypoint.altitude;   // Update altitude
+    current_target_global.x = waypoint.latitude;
+    current_target_global.y = waypoint.longitude;
+    current_target_global.z = waypoint.altitude;
 }
 
 std_msgs::Bool missionComplete() {
-    double vert_dist = haversine(current_target_global.x, current_target_global.y, current_gps.pose.position.latitude, current_gps.pose.position.longitude);
+    double gps_dist = haversine(current_target_global.x, current_target_global.y, current_gps.pose.position.latitude, current_gps.pose.position.longitude);
     //"rel_alt" and "terrain_alt" "int"
     float current_alt = 0.0;
     float target_alt = 0.0;
     if (altitude_mode == "int") {  // current - asml && target - asml
         current_alt = current_gps.pose.position.altitude;
-	//current_alt = altitude.asml;
         target_alt = current_target_global.z;
     } else if (altitude_mode == "rel_alt") {  // current - rel && target - rel (add home alt)
         current_alt = altitude.relative;
         target_alt = current_target_global.z;
-
     } else {  // current - rel && target - rel
         current_alt = altitude.terrain;
         target_alt = current_target_global.z;
     }
-    double hori_dist = current_alt - target_alt;
-    double dist = sqrt(vert_dist * vert_dist + hori_dist * hori_dist);
+    double alt_dist = current_alt - target_alt;
+    double dist = sqrt(gps_dist * gps_dist + alt_dist * alt_dist);
     logger->logMessage("alt: " + to_string_with_precision(current_alt) + " | " + to_string_with_precision(target_alt));
     logger->logMessage("lat: " + to_string_with_precision(current_gps.pose.position.latitude) + " | " + to_string_with_precision(current_target_global.x));
     logger->logMessage("lon: " + to_string_with_precision(current_gps.pose.position.longitude) + " | " + to_string_with_precision(current_target_global.y));
-    logger->logMessage("Total: " + std::to_string(dist) + " gps: " + std::to_string(vert_dist) + " h: " + std::to_string(hori_dist));
+    logger->logMessage("Total: " + std::to_string(dist) + " gps: " + std::to_string(gps_dist) + " h: " + std::to_string(alt_dist));
     logger->logMessage("______________________________________________________");
-    if (dist < overall_tolerance && vert_dist < xy_tolerance && hori_dist < h_tolerance && dist != 0) {
+    if (dist < overall_tolerance && gps_dist < xy_tolerance && alt_dist < h_tolerance && dist != 0) {
         reached_target.data = true;
         ROS_INFO_ONCE("Reached waypoint!");
         logger->logMessage("reached");
@@ -74,9 +77,7 @@ int main(int argc, char **argv) {
 
     signal(SIGINT, sigintHandler);
     signal(SIGTERM, sigintHandler);
-    std::string log_folder;
-
-    log_folder = createLogFolder();
+    std::string log_folder = createLogFolder(log_folder_base);
     Logger mission_logger(log_folder, "mission_checker");
     logger = &mission_logger;
     logger->logMessage("Logger initialized.");
@@ -89,7 +90,7 @@ int main(int argc, char **argv) {
     ros::Rate rate(20.0);
 
     // Read tolerances from file
-    std::ifstream tol_file("/home/uvify/catkin_ws/src/survey_mission/path/tolerances.txt");
+    std::ifstream tol_file(tol_filename);
     if (tol_file.is_open()) {
         tol_file >> overall_tolerance >> xy_tolerance >> h_tolerance;
         tol_file.close();

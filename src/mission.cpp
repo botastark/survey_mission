@@ -1,16 +1,11 @@
 #include "util.cpp"
 bool reached_target = false;
 bool current_gps_received = false;
-std::string altitude_mode = "rel_alt";  //"rel_alt" and "terrain_alt" "int"
-
-std::string waypoint_filename = "/home/uvify/catkin_ws/src/survey_mission/path/waypoints.txt";  // File containing waypoints
-std::string img_metadata_filename = "/home/uvify/Desktop/offboard_images/metadata/"; // File containing waypoints
-
-mavros_msgs::Altitude altitude;
 
 void altCallback(const mavros_msgs::Altitude::ConstPtr &msg) {
     altitude = *msg;
 }
+
 void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr &msg) {
     current_gps_received = true;
     current_gps.pose.position.altitude =
@@ -29,27 +24,17 @@ void reachedTargetCallback(const std_msgs::Bool::ConstPtr &msg) {
 }
 
 // Function to take a picture
-// TODO: Add metadata
-void takePicture(ros::Publisher &take_picture_pub, float current_orientation) {
+void takePicture(ros::Publisher &take_picture_pub) {
     std_msgs::Bool msg;
     msg.data = true;
     take_picture_pub.publish(msg);
-    
-    ImageMetadata metadata;
-    metadata.timestamp = ros::Time::now();
-    metadata.latitude = current_gps.pose.position.latitude;
-    metadata.longitude = current_gps.pose.position.longitude;
-    metadata.altitude = current_gps.pose.position.altitude;
-    metadata.orientation = current_orientation;
-    metadata.writeToTxt("/path/to/metadata.txt");
 }
-
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "mission_node");
     ros::NodeHandle nh;
     // Initialize log file
-    std::string log_folder = createLogFolder();
+    std::string log_folder = createLogFolder(log_folder_base);
 
     {
         Logger logger(log_folder, "mission_log");
@@ -65,7 +50,7 @@ int main(int argc, char **argv) {
         ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>("mavros/cmd/arming");
         ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("mavros/set_mode");
         ros::Rate rate(20.0);
-        
+
         // for logging file to recognise if node was killed
         signal(SIGINT, sigintHandler);
         signal(SIGTERM, sigintHandler);
@@ -82,10 +67,10 @@ int main(int argc, char **argv) {
         while (ros::ok() && !current_gps_received) {
             ROS_INFO_ONCE("Waiting for GPS signal...");
             logger.logMessageOnce("Waiting for GPS signal...");
-
             ros::spinOnce();
             rate.sleep();
         }
+
         ROS_INFO("GPS position received");
         logger.logMessage("GPS position received");
 
@@ -95,7 +80,7 @@ int main(int argc, char **argv) {
 
         if (altitude_mode == "terrain_alt") {  // above terrain alt
             home_alt = altitude.terrain;
-        } else if (altitude_mode == "rel_alt") {  // arel home
+        } else if (altitude_mode == "rel_alt") {  // rel to home/launch altitude
             home_alt = altitude.relative;
         } else {  // absolute
             home_alt = current_gps.pose.position.altitude;
@@ -138,8 +123,6 @@ int main(int argc, char **argv) {
 
         // ARMING
         // Wait for the drone to be armed (assuming arming is done via qgc)
-        ROS_INFO("Drone is in OFFBOARD mode.");
-        logger.logMessage("Drone is in OFFBOARD mode.");
 
         while (ros::ok() && !current_state.armed) {
             armDrone(arming_client);
@@ -178,12 +161,7 @@ int main(int argc, char **argv) {
             }
 
             // Take picture at waypoint
-	    float current_orientation;
-	    current_orientation = 0.0; // Replace with actual orientation data
-
-	    takePicture(take_picture_pub, current_orientation);
-
-            //takePicture(take_picture_pub);
+            takePicture(take_picture_pub);
             ROS_INFO("Taking picture");
             logger.logMessage("Taking picture");
 
@@ -208,7 +186,6 @@ int main(int argc, char **argv) {
             ros::spinOnce();
             rate.sleep();
         }
-
 
         // Wait for landing
         while (ros::ok() && current_state.mode != "AUTO.LAND") {
