@@ -1,3 +1,5 @@
+#include <unordered_map>
+
 #include "mission.h"
 // Need to WGS84->amsl of gps altitude
 //"When controlling the FCU using global setpoints, you specify the altitude as
@@ -105,7 +107,7 @@ void armDrone(ros::ServiceClient &arming_client) {
     mavros_msgs::CommandBool arm_cmd;
     arm_cmd.request.value = true;
     if (arming_client.call(arm_cmd) && arm_cmd.response.success) {
-        ROS_INFO("Drone armed");
+        ROS_INFO_ONCE("Drone armed");
     } else {
         ROS_ERROR("Failed to arm the drone");
     }
@@ -116,7 +118,7 @@ void setMode(ros::ServiceClient &set_mode_client, const std::string &mode) {
     offb_set_mode.request.custom_mode = mode;
     if (set_mode_client.call(offb_set_mode) &&
         offb_set_mode.response.mode_sent) {
-        ROS_INFO_STREAM("Mode set to: " << mode);
+        ROS_INFO_STREAM_ONCE("Mode set to: " << mode);
     } else {
         ROS_ERROR_STREAM("Failed to set mode: " << mode);
     }
@@ -149,7 +151,6 @@ class Logger {
 
     void logMessage(const std::string &message, LogLevel level = INFO, bool log_once = false) {
         std::ostringstream oss;
-        // oss << "[" << ros::Time::now().toSec << "] " << std::fixed << std::setprecision(15) << message;  // Set precision to 6 decimal places
         std::string log_level_prefix;
         if (g_shutdown_requested) {
             return;  // If shutdown requested, do not log further
@@ -165,7 +166,7 @@ class Logger {
                 log_level_prefix = "ERROR";
                 break;
             default:
-                log_level_prefix = "INFO";  // Default to INFO level if unspecified
+                log_level_prefix = "INFO";
                 break;
         }
 
@@ -210,16 +211,29 @@ class Logger {
     }
 };
 
-std::string getCurrentDateTime() {
-    auto now = std::chrono::system_clock::now();
-
-    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-    std::tm now_tm = *std::localtime(&now_c);
+std::string getCurrentDateTime(std::string format) {
+    std::time_t rawtime = std::time(nullptr);
+    struct std::tm *timeinfo = std::localtime(&rawtime);
+    std::stringstream ss;
 
     char buffer[80];
-    strftime(buffer, sizeof(buffer), "%H-%M", &now_tm);
-    std::stringstream ss;
-    ss << buffer;
+    if (format == "hm") {
+        strftime(buffer, sizeof(buffer), "%H-%M", timeinfo);
+        ss << buffer;
+    } else if (format == "ymd") {
+        strftime(buffer, sizeof(buffer), "%Y-%m-%d", timeinfo);
+        ss << buffer;
+    } else if (format == "hms-ms") {
+        strftime(buffer, sizeof(buffer), "%H-%M-%S", timeinfo);
+        auto now = std::chrono::system_clock::now();
+        auto ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+        auto fractional_seconds = now - ms;
+        ss << buffer << '-' << std::setfill('0') << std::setw(3) << fractional_seconds.count();
+    } else {
+        strftime(buffer, sizeof(buffer), "%Y-%m-%d", timeinfo);
+        ss << buffer;
+    }
+
     return ss.str();
 }
 
@@ -234,17 +248,12 @@ void ensureDirectoryExists(const std::string &path) {
     }
 }
 
-std::string createLogFolder() {
-    std::string folder_name = "/home/uvify/catkin_ws/src/survey_mission/logs/";
-
-    std::time_t rawtime = std::time(nullptr);
-    struct std::tm *timeinfo = std::localtime(&rawtime);
-    char buffer[80];
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d", timeinfo);
-    folder_name += buffer;
+std::string createLogFolder(std::string folder_name) {
+    // std::string folder_name = "/home/uvify/catkin_ws/src/survey_mission/logs/";
+    folder_name += getCurrentDateTime("ymd");
     ensureDirectoryExists(folder_name);
 
-    std::string folder_path = folder_name + "/" + getCurrentDateTime();
+    std::string folder_path = folder_name + "/" + getCurrentDateTime("hm");
     ensureDirectoryExists(folder_path);
 
     return folder_path;
@@ -256,42 +265,44 @@ std::string to_string_with_precision(double value, int precision = 14) {
     return oss.str();
 }
 
-std::string createDateFolder(){
-	std::time_t rawtime = std::time(nullptr);
-	struct std::tm* timeinfo = std::localtime(&rawtime);
-	char buffer[80];
-	strftime(buffer, sizeof(buffer), "%Y-%m-%d", timeinfo);
-	return buffer;
-}
-
-#include <fstream>
-
 struct ImageMetadata {
-    ros::Time timestamp;
-    double latitude;
-    double longitude;
-    double altitude;
-    float orientation; // Assuming orientation data type
+    std::string timestamp;
+    std::string orientation;
+    std::string rpy_orientation;
+    std::string local_position;
+    std::string global_position;
 
-    void writeToTxt(const std::string& filename) const {
-        std::ofstream file(filename, std::ios_base::out | std::ios_base::app); // Open in append mode
+    void writeToTxt(const std::string &filename) const {
+        std::ofstream file(filename, std::ios_base::out | std::ios_base::app);  // Open in append mode
         if (file.is_open()) {
             file << "Timestamp: " << timestamp << std::endl;
-            file.flush(); // Flush the line immediately
-            file << "Latitude: " << latitude << std::endl;
-            file.flush(); // Flush the line immediately
-            file << "Longitude: " << longitude << std::endl;
-            file.flush(); // Flush the line immediately
-            file << "Altitude: " << altitude << std::endl;
-            file.flush(); // Flush the line immediately
-            file << "Orientation: " << orientation << std::endl;
-            file.flush(); // Flush the line immediately
+            file.flush();
+            file << "Global Position (lat, lon, alt): " << global_position << std::endl;
+            file << "Local Position (x, y, z): " << local_position << std::endl;
+            file.flush();
+            file << "Orientation (quaternion): " << orientation << std::endl;
+            file.flush();
+            file << "Orientation (roll-pitch-yaw): " << rpy_orientation << std::endl;
+            file.flush();
+
             file << "---------------------\n";
-            file.flush(); // Flush the line immediately
+            file.flush();
         } else {
-            // Handle file open failure
             std::cerr << "Failed to open file: " << filename << std::endl;
         }
     }
 };
 
+std::unordered_map<std::string, std::string> readConfigFile(const std::string &filename) {
+    std::unordered_map<std::string, std::string> config;
+    std::ifstream file(filename);
+    std::string line;
+    while (std::getline(file, line)) {
+        std::istringstream line_stream(line);
+        std::string key, value;
+        if (std::getline(line_stream, key, '=') && std::getline(line_stream, value)) {
+            config[key] = value;
+        }
+    }
+    return config;
+}

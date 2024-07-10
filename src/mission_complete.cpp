@@ -1,9 +1,5 @@
 #include "util.cpp"
 
-// mavros_msgs::Altitude altitude;
-// std::string altitude_mode = "rel_alt";  //"rel_alt" and "terrain_alt" "int"
-// std::string tol_filename = "/home/uvify/catkin_ws/src/survey_mission/path/tolerances.txt";
-
 std_msgs::Bool reached_target;
 geometry_msgs::Vector3 current_target_global;
 Logger *logger;  // Pointer to Logger instance

@@ -48,7 +48,29 @@ std::string gstreamer_pipeline(int wbmode = 0,
            "tee name=t ! queue ! appsink name=appsink t. ! " +
            "queue ! videoconvert ! omxh265enc insert-vui=1 ! h265parse ! rtph265pay config-interval=1 ! udpsink host=" + udp_ip + " port=" + std::to_string(udp_port);
 }
+std::string quaternionToString(const geometry_msgs::Quaternion& quat) {
+    std::stringstream ss;
+    ss << "[" << to_string_with_precision(quat.x) << ", " << to_string_with_precision(quat.y) << ", " << to_string_with_precision(quat.z) << ", " << to_string_with_precision(quat.w) << "]";
+    return ss.str();
+}
+std::string localPositionToString(const geometry_msgs::Point& position) {
+    std::stringstream ss;
+    ss << "[" << to_string_with_precision(position.x) << ", " << to_string_with_precision(position.y) << ", " << to_string_with_precision(position.z) << "]";
+    return ss.str();
+}
+// TODO: DOUBLE CHECK IF EULER ANGLES ARE RIGHT FOR NED FRAME or we need to change it
+// Function to convert quaternion to roll, pitch, and yaw in the NED frame
+geometry_msgs::Point quaternionToRPY(const geometry_msgs::Quaternion& q_orient) {
+    Eigen::Quaterniond quat(q_orient.w, q_orient.x, q_orient.y, q_orient.z);
+    Eigen::Vector3d euler_angles = quat.toRotationMatrix().eulerAngles(2, 1, 0);  // ZYX convention
 
+    geometry_msgs::Point rpy_orient;
+    rpy_orient.x = euler_angles[2];  // Roll
+    rpy_orient.y = euler_angles[1];  // Pitch
+    rpy_orient.z = euler_angles[0];  // Yaw
+
+    return rpy_orient;
+}
 void saveImageCallback(const std_msgs::Bool::ConstPtr& msg) {
     if (msg->data) {
         video_capture >> frame;
@@ -82,25 +104,7 @@ void saveImageCallback(const std_msgs::Bool::ConstPtr& msg) {
         }
     }
 }
-void stateCallback(const mavros_msgs::StateConstPtr& msg) {
-    armed_ = msg->armed;
-    if (armed_ && !metadata_written_) {
-        launch_global_position_.x = current_gps_.latitude;
-        launch_global_position_.y = current_gps_.longitude;
-        launch_global_position_.z = current_gps_.altitude;
-        launch_local_position_.x = current_pose_.pose.pose.position.x;
-        launch_local_position_.y = current_pose_.pose.pose.position.y;
-        launch_local_position_.z = current_pose_.pose.pose.position.z;
 
-        launch_orientation_.x = current_pose_.pose.pose.orientation.x;
-        launch_orientation_.y = current_pose_.pose.pose.orientation.y;
-        launch_orientation_.z = current_pose_.pose.pose.orientation.z;
-        launch_orientation_.w = current_pose_.pose.pose.orientation.w;
-
-        writeLaunchInfo(img_metadata_filename);
-        metadata_written_ = true;  // Set flag to true to indicate launch info has been written
-    }
-}
 void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg) {
     current_gps_ = *msg;
     current_gps_.altitude = ellipsoid_height_to_amsl(msg->latitude, msg->longitude, msg->altitude);
@@ -110,29 +114,6 @@ void poseCallback(const nav_msgs::Odometry::ConstPtr& msg) {
     current_pose_ = *msg;
 }
 
-std::string quaternionToString(const geometry_msgs::Quaternion& quat) {
-    std::stringstream ss;
-    ss << "[" << to_string_with_precision(quat.x) << ", " << to_string_with_precision(quat.y) << ", " << to_string_with_precision(quat.z) << ", " << to_string_with_precision(quat.w) << "]";
-    return ss.str();
-}
-std::string localPositionToString(const geometry_msgs::Point& position) {
-    std::stringstream ss;
-    ss << "[" << to_string_with_precision(position.x) << ", " << to_string_with_precision(position.y) << ", " << to_string_with_precision(position.z) << "]";
-    return ss.str();
-}
-// TODO: DOUBLE CHECK IF EULER ANGLES ARE RIGHT FOR NED FRAME or we need to change it
-// Function to convert quaternion to roll, pitch, and yaw in the NED frame
-geometry_msgs::Point quaternionToRPY(const geometry_msgs::Quaternion& q_orient) {
-    Eigen::Quaterniond quat(q_orient.w, q_orient.x, q_orient.y, q_orient.z);
-    Eigen::Vector3d euler_angles = quat.toRotationMatrix().eulerAngles(2, 1, 0);  // ZYX convention
-
-    geometry_msgs::Point rpy_orient;
-    rpy_orient.x = euler_angles[2];  // Roll
-    rpy_orient.y = euler_angles[1];  // Pitch
-    rpy_orient.z = euler_angles[0];  // Yaw
-
-    return rpy_orient;
-}
 void writeLaunchInfo(const std::string& filename) {
     std::ofstream file(filename, std::ios_base::out | std::ios_base::app);  // Open in append mode
     geometry_msgs::Point rpy_orient = quaternionToRPY(launch_orientation_);
@@ -154,6 +135,25 @@ void writeLaunchInfo(const std::string& filename) {
         file.close();
     } else {
         std::cerr << "Failed to open file: " << filename << std::endl;
+    }
+}
+void stateCallback(const mavros_msgs::StateConstPtr& msg) {
+    armed_ = msg->armed;
+    if (armed_ && !metadata_written_) {
+        launch_global_position_.x = current_gps_.latitude;
+        launch_global_position_.y = current_gps_.longitude;
+        launch_global_position_.z = current_gps_.altitude;
+        launch_local_position_.x = current_pose_.pose.pose.position.x;
+        launch_local_position_.y = current_pose_.pose.pose.position.y;
+        launch_local_position_.z = current_pose_.pose.pose.position.z;
+
+        launch_orientation_.x = current_pose_.pose.pose.orientation.x;
+        launch_orientation_.y = current_pose_.pose.pose.orientation.y;
+        launch_orientation_.z = current_pose_.pose.pose.orientation.z;
+        launch_orientation_.w = current_pose_.pose.pose.orientation.w;
+
+        writeLaunchInfo(img_metadata_filename);
+        metadata_written_ = true;  // Set flag to true to indicate launch info has been written
     }
 }
 int main(int argc, char** argv) {
