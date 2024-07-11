@@ -1,0 +1,14 @@
+wbmode=1
+capture_width=3264
+capture_height=1848
+framerate=28
+format=NV12
+flip_method=2
+contrast=1.0
+brightness=-0.1
+exposure_time_min=13000
+exposure_time_max=68370900
+gain_min=1
+gain_max=10
+aelock=false
+

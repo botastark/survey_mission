@@ -6,6 +6,7 @@ cv::Mat frame;
 
 std::string base_path = "/home/uvify/Desktop/offboard_images/";
 std::string camera_param_path = "/home/uvify/catkin_ws/src/survey_mission/path/camera_params.txt";
+std::string survey_folder;
 
 bool armed_;
 bool metadata_written_;
@@ -76,9 +77,9 @@ void saveImageCallback(const std_msgs::Bool::ConstPtr& msg) {
         video_capture >> frame;
         if (!frame.empty()) {
             std::string timestamp = getCurrentDateTime("hms-ms");
-            std::string dateFolder = base_path + getCurrentDateTime("ymd");
-            ensureDirectoryExists(dateFolder);
-            std::string image_path = dateFolder + "/" + timestamp + ".png";
+            //std::string dateFolder = base_path + getCurrentDateTime("ymd");
+            //ensureDirectoryExists(dateFolder);
+            std::string image_path = survey_folder + "/" + timestamp + ".png";
             cv::imwrite(image_path, frame);
 
             // ROS_INFO("Image captured: %s", filename.c_str());
@@ -139,6 +140,7 @@ void writeLaunchInfo(const std::string& filename) {
 }
 void stateCallback(const mavros_msgs::StateConstPtr& msg) {
     armed_ = msg->armed;
+    //armed_=true;
     if (armed_ && !metadata_written_) {
         launch_global_position_.x = current_gps_.latitude;
         launch_global_position_.y = current_gps_.longitude;
@@ -180,10 +182,18 @@ int main(int argc, char** argv) {
     int gain_min = std::stoi(config["gain_min"]);
     int gain_max = std::stoi(config["gain_max"]);
     bool aelock = (config["aelock"] == "true");
+    
+    survey_folder = base_path + getCurrentDateTime("ymd");
+    ensureDirectoryExists(survey_folder);
+    survey_folder+="/"+getCurrentDateTime("hm");
+    ensureDirectoryExists(survey_folder);
+    img_metadata_filename = survey_folder + "/metadata.txt";
+    
 
     std::string pipeline = gstreamer_pipeline(wbmode, capture_width, capture_height, framerate, format, flip_method, contrast, brightness, exposure_time_min, exposure_time_max, gain_min, gain_max, aelock);
 
     // std::cout << "Using pipeline: \n\t" << pipeline << "\n";
+    camera_params_  = pipeline;
 
     video_capture.open(pipeline, cv::CAP_GSTREAMER);
 
