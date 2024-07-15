@@ -1,5 +1,6 @@
 #include <opencv2/opencv.hpp>
-
+#include <mavros_msgs/Mavlink.h>
+#include <mavlink/v2.0/common/mavlink.h>
 #include "util.cpp"
 cv::VideoCapture video_capture;
 cv::Mat frame;
@@ -17,9 +18,15 @@ std::string camera_params_;
 
 sensor_msgs::NavSatFix current_gps_;
 nav_msgs::Odometry current_pose_;
+#include <boost/make_shared.hpp>
 
 std::string survey_folder_;
 std::string img_metadata_filename;
+#include <unordered_set>
+
+// Global set to store unique command IDs
+std::unordered_set<uint16_t> received_commands;
+// Callback function to handle incoming MAVLink messages
 
 std::string gstreamer_pipeline(int wbmode = 0,
                                int capture_width = 3264,
@@ -72,6 +79,8 @@ geometry_msgs::Point quaternionToRPY(const geometry_msgs::Quaternion& q_orient) 
 
     return rpy_orient;
 }
+
+
 void saveImageCallback(const std_msgs::Bool::ConstPtr& msg) {
     if (msg->data) {
         video_capture >> frame;
@@ -138,6 +147,42 @@ void writeLaunchInfo(const std::string& filename) {
         std::cerr << "Failed to open file: " << filename << std::endl;
     }
 }
+
+
+
+void mavlinkCallback(const mavros_msgs::Mavlink::ConstPtr& msg)
+{
+    mavlink_message_t mav_msg;
+    mavlink_status_t status;
+
+    // Fill the mavlink_message_t structure
+    mav_msg.msgid = msg->msgid;
+    mav_msg.len = msg->len;
+    mav_msg.seq = msg->seq;
+    mav_msg.sysid = msg->sysid;
+    mav_msg.compid = msg->compid;
+    std::memcpy(mav_msg.payload64, msg->payload64.data(), msg->payload64.size() * sizeof(uint64_t));
+    //if (received_commands.find(mav_msg.msgid) == received_commands.end()) {
+        // If not found, add to set and process
+        received_commands.insert(mav_msg.msgid);
+    	if (mav_msg.msgid == MAV_CMD_IMAGE_START_CAPTURE){
+        	ROS_INFO("Received MAV_CMD_IMAGE_START_CAPTURE command");
+        	std_msgs::Bool msg_tosave;
+    		msg_tosave.data = true;
+//        	saveImageCallback(msg_tosave);
+        	saveImageCallback(boost::make_shared<std_msgs::Bool>(msg_tosave));
+
+    	}
+    	else if (mav_msg.msgid == MAV_CMD_IMAGE_STOP_CAPTURE)
+    	{
+        	ROS_INFO("Received MAV_CMD_IMAGE_STOP_CAPTURE command");
+    	}
+    	else
+    	{
+        	ROS_INFO("Received MAVLink command with ID: %d",mav_msg.msgid );
+    	}
+    //}
+}
 void stateCallback(const mavros_msgs::StateConstPtr& msg) {
     armed_ = msg->armed;
     //armed_=true;
@@ -165,6 +210,7 @@ int main(int argc, char** argv) {
     ros::Subscriber gps_sub_ = nh_camera.subscribe("/mavros/global_position/global", 10, gpsCallback);
     ros::Subscriber pose_sub_ = nh_camera.subscribe("/mavros/local_position/odom", 10, poseCallback);
     ros::Subscriber state_sub_ = nh_camera.subscribe("/mavros/state", 10, stateCallback);
+    ros::Subscriber mav_sub = nh_camera.subscribe("/mavlink/from", 10, mavlinkCallback);
 
     // Read configuration from text file
     std::unordered_map<std::string, std::string> config = readConfigFile(camera_param_path);
